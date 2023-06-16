@@ -3,7 +3,7 @@
 
 	<artifactId>bqat-sdk</artifactId>
 	<groupId>io.github.biometix</groupId>
-	<version>0.0.1</version>
+	<version>0.0.1-SNAPSHOT</version>
 	<name>bqat-sdk</name>
 	<description>Implementation of Quality service for biometrics</description>
 	<packaging>jar</packaging>
@@ -14,7 +14,7 @@
 		<url>scm:git:https://github.com/Biometix/bqat-sdk.git</url>
 		<tag>bqat-sdk-0.0.1</tag>
 	</scm>
-	
+
 	<licenses>
 		<license>
 			<name>MPL 2.0</name>
