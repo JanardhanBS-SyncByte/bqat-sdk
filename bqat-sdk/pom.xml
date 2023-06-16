@@ -11,9 +11,10 @@
 	<scm>
 		<connection>scm:git:git://github.com/Biometix/bqat-sdk.git</connection>
 		<developerConnection>scm:git:ssh://github.com/Biometix/bqat-sdk.git</developerConnection>
-		<url>https://github.com/Biometix/bqat-sdk/tree/main</url>
+		<url>scm:git:https://github.com/Biometix/bqat-sdk.git</url>
 		<tag>bqat-sdk-0.0.1</tag>
 	</scm>
+	
 	<licenses>
 		<license>
 			<name>MPL 2.0</name>
