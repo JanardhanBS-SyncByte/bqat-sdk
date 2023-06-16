@@ -3,7 +3,7 @@
 
 	<artifactId>bqat-sdk</artifactId>
 	<groupId>io.github.biometix</groupId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>0.0.1</version>
 	<name>bqat-sdk</name>
 	<description>Implementation of Quality service for biometrics</description>
 	<packaging>jar</packaging>
