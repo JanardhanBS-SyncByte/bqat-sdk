@@ -1,10 +1,9 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
 	<artifactId>bqat-sdk</artifactId>
 	<groupId>io.github.biometix</groupId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>0.0.1</version>
 	<name>bqat-sdk</name>
 	<description>Implementation of Quality service for biometrics</description>
 	<packaging>jar</packaging>
@@ -13,7 +12,7 @@
 		<connection>scm:git:git://github.com/Biometix/bqat-sdk.git</connection>
 		<developerConnection>scm:git:ssh://github.com/Biometix/bqat-sdk.git</developerConnection>
 		<url>https://github.com/Biometix/bqat-sdk/tree/main</url>
-		<tag>HEAD</tag>
+		<tag>bqat-sdk-0.0.1</tag>
 	</scm>
 	<licenses>
 		<license>
