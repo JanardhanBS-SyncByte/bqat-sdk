@@ -1,29 +1,41 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	
 	<artifactId>bqatsdk-services</artifactId>
 	<groupId>io.bqat.sdk</groupId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>bqatsdk-services</name>
+
 	<description>Implementation of Quality service for biometrics</description>
-	<packaging>jar</packaging>
+	<packaging>pom</packaging>
+	<url>https://github.com/Biometix/bqat-sdk</url>
 
 	<scm>
-		<connection>scm:git:git://github.com/Biometix/bqat-sdk</connection>
-		<developerConnection>scm:git:ssh://github.com/Biometix/bqat-sdk</developerConnection>
+		<connection>scm:git:git://github.com/Biometix/bqat-sdk.git</connection>
+		<developerConnection>scm:git:ssh://github.com/Biometix/bqat-sdk.git</developerConnection>
 		<url>https://github.com/Biometix/bqat-sdk</url>
-		<tag>HEAD</tag>
+		<tag>bqat-sdk-services-0.0.1</tag>
 	</scm>
+
 	<licenses>
-          <license>
-                <name>MPL 2.0</name>
-                <url>https://www.mozilla.org/en-US/MPL/2.0/</url>
-          </license>
-        </licenses>
+		<license>
+			<name>MPL 2.0</name>
+			<url>https://www.mozilla.org/en-US/MPL/2.0/</url>
+		</license>
+	</licenses>
+
+	<developers>
+		<developer>
+			<name>Biometix</name>
+			<email>techsupport@biometix.com</email>
+			<organization>Biometix</organization>
+			<organizationUrl>https://www.biometix.com</organizationUrl>
+		</developer>
+	</developers>
+	<inceptionYear>2024</inceptionYear>
 
 	<properties>
-	
 	<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<java.version>11</java.version>
       	<!-- maven -->
@@ -196,33 +208,33 @@
 			<artifactId>gson</artifactId>
 			<version>2.8.6</version>
 		</dependency>
-        <dependency>
-            <groupId>org.apache.commons</groupId>
-            <artifactId>commons-lang3</artifactId>
-            <version>3.11</version>
-        </dependency>
-        <dependency>
-            <groupId>commons-codec</groupId>
-            <artifactId>commons-codec</artifactId>
-            <version>1.15</version>
-        </dependency>
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>jul-to-slf4j</artifactId>
-            <version>1.7.25</version>
-        </dependency>
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>jcl-over-slf4j</artifactId>
-            <version>1.7.25</version>
-        </dependency>
-        <dependency>
-	      	<groupId>junit</groupId>
-	      	<artifactId>junit</artifactId>
-	      	<version>${junit.version}</version>
-	      	<scope>test</scope>
-	    </dependency>
-    </dependencies>
+    <dependency>
+        <groupId>org.apache.commons</groupId>
+        <artifactId>commons-lang3</artifactId>
+        <version>3.11</version>
+    </dependency>
+    <dependency>
+        <groupId>commons-codec</groupId>
+        <artifactId>commons-codec</artifactId>
+        <version>1.15</version>
+    </dependency>
+    <dependency>
+        <groupId>org.slf4j</groupId>
+        <artifactId>jul-to-slf4j</artifactId>
+        <version>1.7.25</version>
+    </dependency>
+    <dependency>
+        <groupId>org.slf4j</groupId>
+        <artifactId>jcl-over-slf4j</artifactId>
+        <version>1.7.25</version>
+    </dependency>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>${junit.version}</version>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
 
 	<build>
 		<plugins>
@@ -345,4 +357,5 @@
 			</build>
 		</profile>
 	</profiles>
+
 </project>
