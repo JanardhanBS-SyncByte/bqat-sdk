@@ -120,7 +120,7 @@ public class CheckQualityService extends SDKService {
 		return response;
 	}
 
-	private QualityScore evaluateQuality(BiometricType modality, List<BIR> segments) {
+	private QualityScore evaluateQuality(BiometricType modality, List<BIR> segments) throws JSONException {
 		QualityScore score = new QualityScore();
 		List<String> errors = new ArrayList<>();
 		score.setScore(0);
@@ -138,7 +138,7 @@ public class CheckQualityService extends SDKService {
 		return score;
 	}
 
-	private QualityScore evaluateQuality(List<BIR> segments) {
+	private QualityScore evaluateQuality(List<BIR> segments) throws JSONException {
 		QualityScore score = new QualityScore();
 		score.setAnalyticsInfo(new HashMap<String, String>());
 		List<String> errors = new ArrayList<>();
@@ -147,7 +147,7 @@ public class CheckQualityService extends SDKService {
 		return score;
 	}
 
-	private void setAvgQualityScore(List<BIR> segments, QualityScore score, List<String> errors) {
+	private void setAvgQualityScore(List<BIR> segments, QualityScore score, List<String> errors) throws JSONException {
 		float qualityScore = 0;
 		int segmentCount = 0;
 		for (BIR segment : segments) {
@@ -155,13 +155,17 @@ public class CheckQualityService extends SDKService {
 			if (!isValidBirData(segment, requestDto))
 				break;
 			segmentCount++;
-			JSONObject object = serviceHelper.getQualityInfoWithJson(requestDto);
-			Iterator<String> listKEY = object.keys();
+			JSONObject jsonObject = serviceHelper.getQualityInfoWithJson(requestDto);
+			JSONObject jsonObjectResults = jsonObject.getJSONObject(settingsDto.getJsonResults());
+			score.getAnalyticsInfo().put(settingsDto.getEngine(), jsonObject.get(settingsDto.getEngine()).toString());
+			score.getAnalyticsInfo().put(settingsDto.getTimestamp(), jsonObject.get(settingsDto.getTimestamp()).toString());
+
+			Iterator<String> listKEY = jsonObject.keys();
 		    while (listKEY.hasNext()) {
 		        String key = listKEY.next().toString();
 		        String value = null;
 				try {
-					value = object.get(key).toString();
+					value = jsonObject.get(key).toString();
 			        score.getAnalyticsInfo().put(key, value);
 			        
 			        switch (requestDto.getModality())

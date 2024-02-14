@@ -44,7 +44,6 @@ public class SDKServiceHelper {
 				String jsonResponse = response.body().string();
 				LOGGER.debug("response>>>>>>>>>>>>>>>>>" +  jsonResponse);
 				JSONObject jsonObject = new JSONObject(jsonResponse);
-				jsonObject = jsonObject.getJSONObject(settingsDto.getJsonResults());
 				return jsonObject;
 			}
 		} catch (IOException | JSONException e) {

@@ -18,9 +18,12 @@ public class SettingsDto {
 	private String contentType;
 	private String contentCharset;
 	private String jsonResults;
+	private String engine;
+	private String timestamp;
+	
 	public SettingsDto(String jsonKeyFingerQualityScore, String jsonKeyIrisQualityScore, String jsonKeyFaceQualityScore,
 			String serverIpAddress, String serverPort, String serverPath, String contentType, String contentCharset,
-			String jsonResults) {
+			String jsonResults, String engine, String timestamp) {
 		super();
 		this.jsonKeyFingerQualityScore = jsonKeyFingerQualityScore;
 		this.jsonKeyIrisQualityScore = jsonKeyIrisQualityScore;
@@ -31,5 +34,7 @@ public class SettingsDto {
 		this.contentType = contentType;
 		this.contentCharset = contentCharset;
 		this.jsonResults = jsonResults;
+		this.engine = engine;
+		this.timestamp = timestamp;
 	}
 }
