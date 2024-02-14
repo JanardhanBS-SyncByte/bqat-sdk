@@ -20,7 +20,7 @@ public class SettingsDto {
 	private String jsonResults;
 	private String engine;
 	private String timestamp;
-	
+
 	public SettingsDto(String jsonKeyFingerQualityScore, String jsonKeyIrisQualityScore, String jsonKeyFaceQualityScore,
 			String serverIpAddress, String serverPort, String serverPath, String contentType, String contentCharset,
 			String jsonResults, String engine, String timestamp) {

@@ -65,6 +65,10 @@ public class BqatQualitySDKTest {
         ReflectionTestUtils.setField(qualitySDKService, "getContentType", "application/json");
         ReflectionTestUtils.setField(qualitySDKService, "getContentCharset", "utf-8");
         ReflectionTestUtils.setField(qualitySDKService, "getJsonResults", "results");        
+        ReflectionTestUtils.setField(qualitySDKService, "getContentCharset", "utf-8");
+        ReflectionTestUtils.setField(qualitySDKService, "getJsonResults", "results");        
+        ReflectionTestUtils.setField(qualitySDKService, "getBqatEngine", "engine");
+        ReflectionTestUtils.setField(qualitySDKService, "getTimestamp", "timestamp");        
 	}
 	
 	/*

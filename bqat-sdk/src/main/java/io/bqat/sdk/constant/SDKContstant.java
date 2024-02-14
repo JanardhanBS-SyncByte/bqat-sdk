@@ -8,3 +8,4 @@ public class SDKContstant {
 	public static String DATATYPE_JP2 = "jp2";
 	public static String DATATYPE_WSQ = "wsq";
 }
+

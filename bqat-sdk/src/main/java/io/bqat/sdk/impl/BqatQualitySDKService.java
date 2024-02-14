@@ -37,7 +37,7 @@ public class BqatQualitySDKService implements IBioApiV2 {
 	private static final String SDK_VERSION = "1.0";
 	private static final String ORGINALIZATION = "BQAT";
 	private static final String TYPE = "QUALITY";
-	
+
 	@Value("${bqat.jsonkey.finger.quality.score}")
 	private String getJsonKeyFingerQualityScore;
 
@@ -70,7 +70,7 @@ public class BqatQualitySDKService implements IBioApiV2 {
 
 	@Value("${bqat.json.timestamp}")
 	private String getTimestamp;
-	
+
 	@Override
 	public SDKInfo init(Map<String, String> initParams) {
 		// TODO validate for mandatory initParams
@@ -81,8 +81,9 @@ public class BqatQualitySDKService implements IBioApiV2 {
 	@Override
 	public Response<QualityCheck> checkQuality(BiometricRecord sample, List<BiometricType> modalitiesToCheck,
 			Map<String, String> flags) {
-		SettingsDto settingsDto = new SettingsDto(getJsonKeyFingerQualityScore, getJsonKeyIrisQualityScore, getJsonKeyFaceQualityScore, 
-				getServerIpAddress, getServerPort, getServerPath, getContentType, getContentCharset, getJsonResults, getBqatEngine, getTimestamp);
+		SettingsDto settingsDto = new SettingsDto(getJsonKeyFingerQualityScore, getJsonKeyIrisQualityScore,
+				getJsonKeyFaceQualityScore, getServerIpAddress, getServerPort, getServerPath, getContentType,
+				getContentCharset, getJsonResults, getBqatEngine, getTimestamp);
 		CheckQualityService service = new CheckQualityService(sample, modalitiesToCheck, flags, settingsDto);
 		return service.getCheckQualityInfo();
 	}
