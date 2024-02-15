@@ -160,12 +160,12 @@ public class CheckQualityService extends SDKService {
 			score.getAnalyticsInfo().put(settingsDto.getEngine(), jsonObject.get(settingsDto.getEngine()).toString());
 			score.getAnalyticsInfo().put(settingsDto.getTimestamp(), jsonObject.get(settingsDto.getTimestamp()).toString());
 
-			Iterator<String> listKEY = jsonObject.keys();
+			Iterator<String> listKEY = jsonObjectResults.keys();
 		    while (listKEY.hasNext()) {
 		        String key = listKEY.next().toString();
 		        String value = null;
 				try {
-					value = jsonObject.get(key).toString();
+					value = jsonObjectResults.get(key).toString();
 			        score.getAnalyticsInfo().put(key, value);
 			        
 			        switch (requestDto.getModality())

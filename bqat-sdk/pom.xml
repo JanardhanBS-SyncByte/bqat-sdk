@@ -7,7 +7,7 @@
 	<version>0.0.2</version>
 	<name>BQAT SDK</name>
 	<description>Implementation of Quality service for biometrics</description>
-	<packaging>pom</packaging>
+	<packaging>jar</packaging>
 	<url>https://github.com/Biometix/bqat-sdk</url>
 
 	<scm>
@@ -37,8 +37,8 @@
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-		<maven.compiler.source>20</maven.compiler.source>
-		<maven.compiler.target>20</maven.compiler.target>
+		<maven.compiler.source>11</maven.compiler.source>
+        <maven.compiler.target>11</maven.compiler.target>
 		<maven.compiler.version>3.9.2</maven.compiler.version>
 		<maven.jar.plugin.version>3.0.2</maven.jar.plugin.version>
 		<maven.war.plugin.version>3.1.0</maven.war.plugin.version>
@@ -136,11 +136,6 @@
 						<descriptorRef>jar-with-dependencies</descriptorRef>
 					</descriptorRefs>
 					<archive>
-						<!-- <manifest>
-	                     <addClasspath>true</addClasspath>
-	                     <mainClass>registrationtest.runapplication.RegistrationMain</mainClass>
-	                  </manifest>
-	                  -->
 					</archive>
 				</configuration>
 				<executions>
