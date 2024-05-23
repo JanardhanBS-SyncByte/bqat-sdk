@@ -1,7 +1,6 @@
 package io.bqat.sdk.service;
 
 import java.util.ArrayList;
-import java.util.Base64;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -9,6 +8,11 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import io.bqat.sdk.constant.ResponseStatus;
+import io.bqat.sdk.constant.SDKContstant;
+import io.bqat.sdk.dto.BqatRequestDto;
+import io.bqat.sdk.exceptions.SDKException;
+import io.bqat.sdk.utils.Util;
 import io.mosip.biometrics.util.ConvertRequestDto;
 import io.mosip.biometrics.util.face.FaceBDIR;
 import io.mosip.biometrics.util.face.FaceDecoder;
@@ -35,11 +39,6 @@ import io.mosip.kernel.biometrics.constant.BiometricType;
 import io.mosip.kernel.biometrics.constant.PurposeType;
 import io.mosip.kernel.biometrics.entities.BIR;
 import io.mosip.kernel.biometrics.entities.BiometricRecord;
-import io.bqat.sdk.constant.ResponseStatus;
-import io.bqat.sdk.constant.SDKContstant;
-import io.bqat.sdk.dto.BqatRequestDto;
-import io.bqat.sdk.exceptions.SDKException;
-import io.bqat.sdk.utils.Util;
 
 public abstract class SDKService {
 	Logger LOGGER = LoggerFactory.getLogger(SDKService.class);

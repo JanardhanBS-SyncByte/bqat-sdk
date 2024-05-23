@@ -10,20 +10,18 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import io.bqat.sdk.constant.ResponseStatus;
+import io.bqat.sdk.dto.BqatRequestDto;
+import io.bqat.sdk.dto.SettingsDto;
+import io.bqat.sdk.exceptions.SDKException;
 import io.mosip.kernel.biometrics.constant.BiometricType;
 import io.mosip.kernel.biometrics.entities.BIR;
 import io.mosip.kernel.biometrics.entities.BiometricRecord;
 import io.mosip.kernel.biometrics.model.QualityCheck;
 import io.mosip.kernel.biometrics.model.QualityScore;
 import io.mosip.kernel.biometrics.model.Response;
-import io.bqat.sdk.constant.ResponseStatus;
-import io.bqat.sdk.dto.BqatRequestDto;
-import io.bqat.sdk.dto.SettingsDto;
-import io.bqat.sdk.exceptions.SDKException;
 
 @Component
 public class CheckQualityService extends SDKService {	
