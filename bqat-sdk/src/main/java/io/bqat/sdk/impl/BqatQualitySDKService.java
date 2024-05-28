@@ -5,11 +5,13 @@ import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.stereotype.Component;
 
+import io.bqat.sdk.dto.SettingsDto;
+import io.bqat.sdk.service.CheckQualityService;
+import io.bqat.sdk.service.SDKInfoService;
 import io.mosip.kernel.biometrics.constant.BiometricType;
 import io.mosip.kernel.biometrics.entities.BiometricRecord;
 import io.mosip.kernel.biometrics.model.MatchDecision;
@@ -17,10 +19,6 @@ import io.mosip.kernel.biometrics.model.QualityCheck;
 import io.mosip.kernel.biometrics.model.Response;
 import io.mosip.kernel.biometrics.model.SDKInfo;
 import io.mosip.kernel.biometrics.spi.IBioApiV2;
-import io.bqat.sdk.dto.SettingsDto;
-import io.bqat.sdk.service.CheckQualityService;
-import io.bqat.sdk.service.SDKInfoService;
-import io.bqat.sdk.service.SDKServiceHelper;
 
 /**
  * The Class BqatQualitySDKService.
