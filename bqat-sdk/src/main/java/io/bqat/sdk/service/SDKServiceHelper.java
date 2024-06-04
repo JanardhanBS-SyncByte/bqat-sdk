@@ -18,8 +18,8 @@ import io.bqat.sdk.dto.SettingsDto;
 import io.mosip.kernel.core.util.DateUtils;
 
 public class SDKServiceHelper {
-	Logger LOGGER = LoggerFactory.getLogger(SDKServiceHelper.class);
-	private String REQ_TEMPLATE = "{ \"modality\": \"%s\", \"id\": \"%s\", \"type\": \"%s\", \"data\": \"%s\", \"requestTime\": \"%s\", \"version\": \"%s\"}";
+	private Logger logger = LoggerFactory.getLogger(SDKServiceHelper.class);
+	private static final String REQ_TEMPLATE = "{ \"modality\": \"%s\", \"id\": \"%s\", \"type\": \"%s\", \"data\": \"%s\", \"requestTime\": \"%s\", \"version\": \"%s\"}";
 
 	private SettingsDto settingsDto;
 	public SDKServiceHelper(SettingsDto settingsDto)
@@ -32,7 +32,7 @@ public class SDKServiceHelper {
 		String requestBody = String.format(REQ_TEMPLATE, requestDto.getModality(), requestDto.getId(), requestDto.getType(), requestDto.getData(),
 				DateUtils.getUTCCurrentDateTime(), "1.0.0");
 
-		LOGGER.debug("requestBody>>>>>>>>>>>>>>>>>" +  requestBody);
+		logger.debug("getQualityInfoWithJson::requestBody {}",  requestBody);
 		
 		MediaType mediaType = MediaType.parse(settingsDto.getContentType() + "; charset=" + settingsDto.getContentCharset());
 		RequestBody body = RequestBody.create(mediaType, requestBody);
@@ -42,12 +42,11 @@ public class SDKServiceHelper {
 			Response response = client.newCall(request).execute();
 			if (response.isSuccessful()) {
 				String jsonResponse = response.body().string();
-				LOGGER.debug("response>>>>>>>>>>>>>>>>>" +  jsonResponse);
-				JSONObject jsonObject = new JSONObject(jsonResponse);
-				return jsonObject;
+				logger.debug("getQualityInfoWithJson::response {}", jsonResponse);
+				return new JSONObject(jsonResponse);
 			}
 		} catch (IOException | JSONException e) {
-			LOGGER.error("getQualityInfoWithJson", e);
+			logger.error("getQualityInfoWithJson", e);
 		}
 		return null;
 	}
