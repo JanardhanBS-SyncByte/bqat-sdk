@@ -3,8 +3,6 @@ package io.bqat.sdk.impl;
 import java.util.List;
 import java.util.Map;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.stereotype.Component;
@@ -29,8 +27,6 @@ import io.mosip.kernel.biometrics.spi.IBioApiV2;
 @Component
 @EnableAutoConfiguration
 public class BqatQualitySDKService implements IBioApiV2 {
-	Logger LOGGER = LoggerFactory.getLogger(BqatQualitySDKService.class);
-
 	private static final String API_VERSION = "0.9";
 	private static final String SDK_VERSION = "1.0";
 	private static final String ORGINALIZATION = "BQAT";
@@ -71,7 +67,6 @@ public class BqatQualitySDKService implements IBioApiV2 {
 
 	@Override
 	public SDKInfo init(Map<String, String> initParams) {
-		// TODO validate for mandatory initParams
 		SDKInfoService service = new SDKInfoService(API_VERSION, SDK_VERSION, ORGINALIZATION, TYPE);
 		return service.getSDKInfo();
 	}
@@ -111,8 +106,11 @@ public class BqatQualitySDKService implements IBioApiV2 {
 		return null;
 	}
 
+	/*
+	 * @deprecated (0.0.2, @use convertFormatV2)
+	 */
 	@Override
-	@Deprecated
+	@Deprecated(since = "0.0.2", forRemoval = true)
 	public BiometricRecord convertFormat(BiometricRecord sample, String sourceFormat, String targetFormat,
 			Map<String, String> sourceParams, Map<String, String> targetParams,
 			List<BiometricType> modalitiesToConvert) {

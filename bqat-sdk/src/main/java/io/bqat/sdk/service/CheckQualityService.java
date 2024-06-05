@@ -1,6 +1,7 @@
 package io.bqat.sdk.service;
 
 import java.util.ArrayList;
+import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -29,9 +30,10 @@ public class CheckQualityService extends SDKService {
 
 	private BiometricRecord sample;
 	private List<BiometricType> modalitiesToCheck;
+	@SuppressWarnings("unused")
 	private Map<String, String> flags;
 
-	Logger LOGGER = LoggerFactory.getLogger(CheckQualityService.class);
+	private Logger logger = LoggerFactory.getLogger(CheckQualityService.class);
 	private SDKServiceHelper serviceHelper;
 	
 	public CheckQualityService(BiometricRecord sample, List<BiometricType> modalitiesToCheck,
@@ -54,57 +56,58 @@ public class CheckQualityService extends SDKService {
 				throw new SDKException(responseStatus.getStatusCode() + "", responseStatus.getStatusMessage());
 			}
 
-			scores = new HashMap<>();
+			scores = new EnumMap<>(BiometricType.class);
 			Map<BiometricType, List<BIR>> segmentMap = getBioSegmentMap(sample, modalitiesToCheck);
-			for (BiometricType modality : segmentMap.keySet()) {
+			for (Map.Entry<BiometricType, List<BIR>> entry : segmentMap.entrySet()) {
+				BiometricType modality = entry.getKey();
 				QualityScore qualityScore = evaluateQuality(modality, segmentMap.get(modality));
 				scores.put(modality, qualityScore);
 			}
 		} catch (SDKException ex) {
-			LOGGER.error("checkQuality -- error", ex);
+			logger.error("checkQuality -- error", ex);
 			switch (ResponseStatus.fromStatusCode(Integer.parseInt(ex.getErrorCode()))) {
 			case INVALID_INPUT:
 				response.setStatusCode(ResponseStatus.INVALID_INPUT.getStatusCode());
-				response.setStatusMessage(String.format(ResponseStatus.INVALID_INPUT.getStatusMessage() + " sample"));
+				response.setStatusMessage(ResponseStatus.INVALID_INPUT.getStatusMessage() + " sample");
 				response.setResponse(null);
 				return response;
 			case MISSING_INPUT:
 				response.setStatusCode(ResponseStatus.MISSING_INPUT.getStatusCode());
-				response.setStatusMessage(String.format(ResponseStatus.MISSING_INPUT.getStatusMessage() + " sample"));
+				response.setStatusMessage(ResponseStatus.MISSING_INPUT.getStatusMessage() + " sample");
 				response.setResponse(null);
 				return response;
 			case QUALITY_CHECK_FAILED:
 				response.setStatusCode(ResponseStatus.QUALITY_CHECK_FAILED.getStatusCode());
-				response.setStatusMessage(String.format(ResponseStatus.QUALITY_CHECK_FAILED.getStatusMessage() + ""));
+				response.setStatusMessage(ResponseStatus.QUALITY_CHECK_FAILED.getStatusMessage());
 				response.setResponse(null);
 				return response;
 			case BIOMETRIC_NOT_FOUND_IN_CBEFF:
 				response.setStatusCode(ResponseStatus.BIOMETRIC_NOT_FOUND_IN_CBEFF.getStatusCode());
 				response.setStatusMessage(
-						String.format(ResponseStatus.BIOMETRIC_NOT_FOUND_IN_CBEFF.getStatusMessage() + ""));
+						ResponseStatus.BIOMETRIC_NOT_FOUND_IN_CBEFF.getStatusMessage());
 				response.setResponse(null);
 				return response;
 			case MATCHING_OF_BIOMETRIC_DATA_FAILED:
 				response.setStatusCode(ResponseStatus.MATCHING_OF_BIOMETRIC_DATA_FAILED.getStatusCode());
 				response.setStatusMessage(
-						String.format(ResponseStatus.MATCHING_OF_BIOMETRIC_DATA_FAILED.getStatusMessage() + ""));
+						ResponseStatus.MATCHING_OF_BIOMETRIC_DATA_FAILED.getStatusMessage());
 				response.setResponse(null);
 				return response;
 			case POOR_DATA_QUALITY:
 				response.setStatusCode(ResponseStatus.POOR_DATA_QUALITY.getStatusCode());
-				response.setStatusMessage(String.format(ResponseStatus.POOR_DATA_QUALITY.getStatusMessage() + ""));
+				response.setStatusMessage(ResponseStatus.POOR_DATA_QUALITY.getStatusMessage());
 				response.setResponse(null);
 				return response;
 			default:
 				response.setStatusCode(ResponseStatus.UNKNOWN_ERROR.getStatusCode());
-				response.setStatusMessage(String.format(ResponseStatus.UNKNOWN_ERROR.getStatusMessage() + ""));
+				response.setStatusMessage(ResponseStatus.UNKNOWN_ERROR.getStatusMessage());
 				response.setResponse(null);
 				return response;
 			}
 		} catch (Exception ex) {
-			LOGGER.error("checkQuality -- error", ex);
+			logger.error("checkQuality -- error", ex);
 			response.setStatusCode(ResponseStatus.UNKNOWN_ERROR.getStatusCode());
-			response.setStatusMessage(String.format(ResponseStatus.UNKNOWN_ERROR.getStatusMessage() + ""));
+			response.setStatusMessage(ResponseStatus.UNKNOWN_ERROR.getStatusMessage());
 			response.setResponse(null);
 			return response;
 		}
@@ -138,13 +141,14 @@ public class CheckQualityService extends SDKService {
 
 	private QualityScore evaluateQuality(List<BIR> segments) throws JSONException {
 		QualityScore score = new QualityScore();
-		score.setAnalyticsInfo(new HashMap<String, String>());
+		score.setAnalyticsInfo(new HashMap<>());
 		List<String> errors = new ArrayList<>();
 		setAvgQualityScore(segments, score, errors);
 		score.setErrors(errors);
 		return score;
 	}
 
+	@SuppressWarnings({ "java:S135", "java:S3776", "unused", "unchecked" })
 	private void setAvgQualityScore(List<BIR> segments, QualityScore score, List<String> errors) throws JSONException {
 		float qualityScore = 0;
 		int segmentCount = 0;
@@ -160,7 +164,7 @@ public class CheckQualityService extends SDKService {
 
 			Iterator<String> listKEY = jsonObjectResults.keys();
 		    while (listKEY.hasNext()) {
-		        String key = listKEY.next().toString();
+		        String key = listKEY.next();
 		        String value = null;
 				try {
 					value = jsonObjectResults.get(key).toString();
@@ -177,7 +181,6 @@ public class CheckQualityService extends SDKService {
 				        		qualityScore = Float.parseFloat(value);
 				        	break;
 				        case "face":
-				        	//TODO : change the keyname once quality is done
 				        	if (key.equalsIgnoreCase(settingsDto.getJsonKeyFaceQualityScore()))
 				        		qualityScore = Float.parseFloat(value);
 				        	break;
@@ -189,7 +192,8 @@ public class CheckQualityService extends SDKService {
 					errors.add(e.getLocalizedMessage());
 				}
 		    }
-		    break;//one segment data at a time
+		    if (segmentCount > 0)
+		    	break;//one segment data at a time
 		}
 	}
 }
