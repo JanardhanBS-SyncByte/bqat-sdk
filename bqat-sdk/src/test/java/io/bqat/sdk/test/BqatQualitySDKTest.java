@@ -15,6 +15,7 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -46,38 +47,39 @@ import io.bqat.sdk.utils.Util;
 @AutoConfigureMockMvc
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class BqatQualitySDKTest {
-	Logger LOGGER = LoggerFactory.getLogger(BqatQualitySDKTest.class);
+	private Logger logger = LoggerFactory.getLogger(BqatQualitySDKTest.class);
 
 	@InjectMocks
-    private BqatQualitySDKService qualitySDKService;
-	
+	private BqatQualitySDKService qualitySDKService;
+
 	private String sampleFacePath = "";
 	private String sampleIrisPath = "";
 	private String sampleFingerPath = "";
 
+	@Before
 	public void setUp() {
 		ReflectionTestUtils.setField(qualitySDKService, "getJsonKeyFingerQualityScore", "NFIQ2");
-        ReflectionTestUtils.setField(qualitySDKService, "getJsonKeyIrisQualityScore", "quality");
-        ReflectionTestUtils.setField(qualitySDKService, "getJsonKeyFaceQualityScore", "quality");
+		ReflectionTestUtils.setField(qualitySDKService, "getJsonKeyIrisQualityScore", "quality");
+		ReflectionTestUtils.setField(qualitySDKService, "getJsonKeyFaceQualityScore", "quality");
 		ReflectionTestUtils.setField(qualitySDKService, "getServerIpAddress", "127.0.0.1");
-        ReflectionTestUtils.setField(qualitySDKService, "getServerPort", ":8848");
-        ReflectionTestUtils.setField(qualitySDKService, "getServerPath", "/base64?urlsafe=true");
-        ReflectionTestUtils.setField(qualitySDKService, "getContentType", "application/json");
-        ReflectionTestUtils.setField(qualitySDKService, "getContentCharset", "utf-8");
-        ReflectionTestUtils.setField(qualitySDKService, "getJsonResults", "results");        
-        ReflectionTestUtils.setField(qualitySDKService, "getContentCharset", "utf-8");
-        ReflectionTestUtils.setField(qualitySDKService, "getJsonResults", "results");        
-        ReflectionTestUtils.setField(qualitySDKService, "getBqatEngine", "engine");
-        ReflectionTestUtils.setField(qualitySDKService, "getTimestamp", "timestamp");        
+		ReflectionTestUtils.setField(qualitySDKService, "getServerPort", ":8848");
+		ReflectionTestUtils.setField(qualitySDKService, "getServerPath", "/base64?urlsafe=true");
+		ReflectionTestUtils.setField(qualitySDKService, "getContentType", "application/json");
+		ReflectionTestUtils.setField(qualitySDKService, "getContentCharset", "utf-8");
+		ReflectionTestUtils.setField(qualitySDKService, "getJsonResults", "results");
+		ReflectionTestUtils.setField(qualitySDKService, "getContentCharset", "utf-8");
+		ReflectionTestUtils.setField(qualitySDKService, "getJsonResults", "results");
+		ReflectionTestUtils.setField(qualitySDKService, "getBqatEngine", "engine");
+		ReflectionTestUtils.setField(qualitySDKService, "getTimestamp", "timestamp");
 	}
-	
+
 	/*
 	 * Test Finger quality JP2000
 	 */
 	@Test
 	public void qualityFinger_JP2000() {
 		setUp();
-        sampleFingerPath = BqatQualitySDKTest.class.getResource("/sample_files/sample_finger_right_index.xml")
+		sampleFingerPath = BqatQualitySDKTest.class.getResource("/sample_files/sample_finger_right_index.xml")
 				.getPath();
 		try {
 			List<BiometricType> modalitiesToMatch = new ArrayList<BiometricType>() {
@@ -87,7 +89,8 @@ public class BqatQualitySDKTest {
 			};
 			BiometricRecord sample_record = xmlFileToBiometricRecord(sampleFingerPath);
 
-			Response<QualityCheck> response = qualitySDKService.checkQuality(sample_record, modalitiesToMatch, new HashMap<>());
+			Response<QualityCheck> response = qualitySDKService.checkQuality(sample_record, modalitiesToMatch,
+					new HashMap<>());
 			if (response != null && response.getResponse() != null) {
 				Map<BiometricType, QualityScore> scores = response.getResponse().getScores();
 				if (scores != null && scores.get(BiometricType.FINGER) != null) {
@@ -111,7 +114,7 @@ public class BqatQualitySDKTest {
 	@Test
 	public void qualityFinger_WSQ() {
 		setUp();
-        sampleFingerPath = BqatQualitySDKTest.class.getResource("/sample_files/sample_finger_right_index_wsq.xml")
+		sampleFingerPath = BqatQualitySDKTest.class.getResource("/sample_files/sample_finger_right_index_wsq.xml")
 				.getPath();
 		try {
 			List<BiometricType> modalitiesToMatch = new ArrayList<BiometricType>() {
@@ -121,7 +124,8 @@ public class BqatQualitySDKTest {
 			};
 			BiometricRecord sample_record = xmlFileToBiometricRecord(sampleFingerPath);
 
-			Response<QualityCheck> response = qualitySDKService.checkQuality(sample_record, modalitiesToMatch, new HashMap<>());
+			Response<QualityCheck> response = qualitySDKService.checkQuality(sample_record, modalitiesToMatch,
+					new HashMap<>());
 			if (response != null && response.getResponse() != null) {
 				Map<BiometricType, QualityScore> scores = response.getResponse().getScores();
 				if (scores != null && scores.get(BiometricType.FINGER) != null) {
@@ -154,7 +158,8 @@ public class BqatQualitySDKTest {
 			};
 			BiometricRecord sample_record = xmlFileToBiometricRecord(sampleIrisPath);
 
-			Response<QualityCheck> response = qualitySDKService.checkQuality(sample_record, modalitiesToMatch, new HashMap<>());
+			Response<QualityCheck> response = qualitySDKService.checkQuality(sample_record, modalitiesToMatch,
+					new HashMap<>());
 			if (response != null && response.getResponse() != null) {
 				Map<BiometricType, QualityScore> scores = response.getResponse().getScores();
 				if (scores != null && scores.get(BiometricType.IRIS) != null) {
@@ -180,14 +185,15 @@ public class BqatQualitySDKTest {
 		setUp();
 		sampleFacePath = BqatQualitySDKTest.class.getResource("/sample_files/sample_face.xml").getPath();
 		try {
-			List<BiometricType> modalitiesToMatch = new ArrayList<BiometricType>() {
+			List<BiometricType> modalitiesToMatch = new ArrayList<>() {
 				{
 					add(BiometricType.FACE);
 				}
 			};
 			BiometricRecord sample_record = xmlFileToBiometricRecord(sampleFacePath);
 
-			Response<QualityCheck> response = qualitySDKService.checkQuality(sample_record, modalitiesToMatch, new HashMap<>());
+			Response<QualityCheck> response = qualitySDKService.checkQuality(sample_record, modalitiesToMatch,
+					new HashMap<>());
 			if (response != null && response.getResponse() != null) {
 				Map<BiometricType, QualityScore> scores = response.getResponse().getScores();
 				if (scores != null && scores.get(BiometricType.FACE) != null) {
@@ -197,24 +203,24 @@ public class BqatQualitySDKTest {
 				}
 			}
 		} catch (ParserConfigurationException e) {
-			e.printStackTrace();
+			logger.error("qualityFace", e);
 		} catch (IOException e) {
-			e.printStackTrace();
+			logger.error("qualityFace", e);
 		} catch (SAXException e) {
-			e.printStackTrace();
+			logger.error("qualityFace", e);
 		}
 	}
 
 	private BiometricRecord xmlFileToBiometricRecord(String path)
 			throws ParserConfigurationException, IOException, SAXException {
 		BiometricRecord biometricRecord = new BiometricRecord();
-		List bir_segments = new ArrayList();
+		List<BIR> birSegments = new ArrayList<>();
 		File fXmlFile = new File(path);
 		DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
 		DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
 		Document doc = dBuilder.parse(fXmlFile);
 		doc.getDocumentElement().normalize();
-		LOGGER.debug("Root element :" + doc.getDocumentElement().getNodeName());
+		logger.debug("Root element : {}", doc.getDocumentElement().getNodeName());
 		Node rootBIRElement = doc.getDocumentElement();
 		NodeList childNodes = rootBIRElement.getChildNodes();
 		for (int temp = 0; temp < childNodes.getLength(); temp++) {
@@ -261,10 +267,6 @@ public class BqatQualitySDKTest {
 				bd.withBdbInfo(bdbInfo);
 
 				/* BDB */
-				// String nBDB = ((Element)
-				// childNode).getElementsByTagName("BDB").item(0).getTextContent();
-				// bd.withBdb(nBDB.getBytes("UTF-8"));
-
 				byte[] nBDB = Util.decodeURLSafeBase64(
 						((Element) childNode).getElementsByTagName("BDB").item(0).getTextContent());
 				bd.withBdb(nBDB);
@@ -273,10 +275,10 @@ public class BqatQualitySDKTest {
 				BIR bir = new BIR(bd);
 
 				/* Add BIR to list of segments */
-				bir_segments.add(bir);
+				birSegments.add(bir);
 			}
 		}
-		biometricRecord.setSegments(bir_segments);
+		biometricRecord.setSegments(birSegments);
 		return biometricRecord;
 	}
 }

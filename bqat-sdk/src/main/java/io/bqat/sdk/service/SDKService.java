@@ -1,14 +1,19 @@
 package io.bqat.sdk.service;
 
+import java.text.MessageFormat;
 import java.util.ArrayList;
-import java.util.Base64;
-import java.util.HashMap;
+import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import io.bqat.sdk.constant.ResponseStatus;
+import io.bqat.sdk.constant.SDKContstant;
+import io.bqat.sdk.dto.BqatRequestDto;
+import io.bqat.sdk.exceptions.SDKException;
+import io.bqat.sdk.utils.Util;
 import io.mosip.biometrics.util.ConvertRequestDto;
 import io.mosip.biometrics.util.face.FaceBDIR;
 import io.mosip.biometrics.util.face.FaceDecoder;
@@ -35,35 +40,28 @@ import io.mosip.kernel.biometrics.constant.BiometricType;
 import io.mosip.kernel.biometrics.constant.PurposeType;
 import io.mosip.kernel.biometrics.entities.BIR;
 import io.mosip.kernel.biometrics.entities.BiometricRecord;
-import io.bqat.sdk.constant.ResponseStatus;
-import io.bqat.sdk.constant.SDKContstant;
-import io.bqat.sdk.dto.BqatRequestDto;
-import io.bqat.sdk.exceptions.SDKException;
-import io.bqat.sdk.utils.Util;
 
 public abstract class SDKService {
-	Logger LOGGER = LoggerFactory.getLogger(SDKService.class);
+	private Logger logger = LoggerFactory.getLogger(SDKService.class);
 
-	protected Map<BiometricType, List<BIR>> getBioSegmentMap(BiometricRecord record,
+	protected Map<BiometricType, List<BIR>> getBioSegmentMap(BiometricRecord bioRecord,
 			List<BiometricType> modalitiesToMatch) {
-		Boolean noFilter = false;
+		boolean noFilter = false;
 
 		// if the modalities to match is not passed, assume that all modalities have to
 		// be matched.
 		if (modalitiesToMatch == null || modalitiesToMatch.isEmpty())
 			noFilter = true;
 
-		Map<BiometricType, List<BIR>> bioSegmentMap = new HashMap<>();
-		for (BIR segment : record.getSegments()) {
+		Map<BiometricType, List<BIR>> bioSegmentMap = new EnumMap<>(BiometricType.class);
+		for (BIR segment : bioRecord.getSegments()) {
 			BiometricType bioType = segment.getBdbInfo().getType().get(0);
 
 			// ignore modalities that are not to be matched
-			if (noFilter == false && !modalitiesToMatch.contains(bioType))
+			if (!noFilter && !modalitiesToMatch.contains(bioType))
 				continue;
 
-			if (!bioSegmentMap.containsKey(bioType)) {
-				bioSegmentMap.put(bioType, new ArrayList<BIR>());
-			}
+			bioSegmentMap.computeIfAbsent(bioType, k -> new ArrayList<>());
 			bioSegmentMap.get(bioType).add(segment);
 		}
 
@@ -91,6 +89,7 @@ public abstract class SDKService {
 		return true;
 	}
 
+	@SuppressWarnings({ "java:S1172", "java:S1192" })
 	protected boolean isValidBIRParams(BIR segment, BiometricType bioType, String bioSubType) {
 		ResponseStatus responseStatus = null;
 		switch (bioType) {
@@ -103,20 +102,20 @@ public abstract class SDKService {
 					|| bioSubType.equals("Right IndexFinger") || bioSubType.equals("Right RingFinger")
 					|| bioSubType.equals("Right MiddleFinger") || bioSubType.equals("Right LittleFinger")
 					|| bioSubType.equals("Right Thumb"))) {
-				LOGGER.error("isValidBIRParams>>BiometricType#" + bioType + ">>BioSubType#" + bioSubType);
+				logger.error("isValidBIRParams>>BiometricType# finger {} :: BioSubType# {}", bioType, bioSubType);
 				responseStatus = ResponseStatus.MISSING_INPUT;
 				throw new SDKException(responseStatus.getStatusCode() + "", responseStatus.getStatusMessage());
 			}
 			break;
 		case IRIS:
 			if (!(bioSubType.equals("UNKNOWN") || bioSubType.equals("Left") || bioSubType.equals("Right"))) {
-				LOGGER.error("isValidBIRParams>>BiometricType#" + bioType + ">>BioSubType#" + bioSubType);
+				logger.error("isValidBIRParams>>BiometricType# iris {} :: BioSubType# {}", bioType, bioSubType);
 				responseStatus = ResponseStatus.MISSING_INPUT;
 				throw new SDKException(responseStatus.getStatusCode() + "", responseStatus.getStatusMessage());
 			}
 			break;
 		default:
-			LOGGER.error("isValidBIRParams>>BiometricType#" + bioType + ">>BioSubType#" + bioSubType);
+			logger.error("isValidBIRParams>>BiometricType# default {} :: BioSubType# {}", bioType, bioSubType);
 			responseStatus = ResponseStatus.MISSING_INPUT;
 			throw new SDKException(responseStatus.getStatusCode() + "", responseStatus.getStatusMessage());
 		}
@@ -145,11 +144,14 @@ public abstract class SDKService {
 			return isValidFingerBdb(purposeType, bioSubType, bdbData, bqatRequestDto);
 		case IRIS:
 			return isValidIrisBdb(purposeType, bioSubType, bdbData, bqatRequestDto);
+			default:
+				break;
 		}
 		responseStatus = ResponseStatus.INVALID_INPUT;
 		throw new SDKException(responseStatus.getStatusCode() + "", responseStatus.getStatusMessage());
 	}
 
+	@SuppressWarnings({ "java:S1141", "java:S3776", "java:S6541" })
 	protected boolean isValidFingerBdb(PurposeType purposeType, String biometricSubType, String bdbData, BqatRequestDto bqatRequestDto) {
 		ResponseStatus responseStatus = null;
 		try {
@@ -175,21 +177,21 @@ public abstract class SDKService {
 			if (!FingerISOStandardsValidator.getInstance().isValidFormatIdentifier(bdir.getFormatIdentifier())) {
 				message.append(
 						"<BR>Invalid Format Identifier for Finger Modality, expected values[0x46495200], but received input value["
-								+ String.format("0x%08X", bdir.getFormatIdentifier()) + "]");
+								+ MessageFormat.format("{0}", bdir.getFormatIdentifier()) + "]");
 				isValid = false;
 			}
 
 			if (!FingerISOStandardsValidator.getInstance().isValidVersionNumber(bdir.getVersionNumber())) {
 				message.append(
 						"<BR>Invalid Version Number for Finger Modality, expected values[0x30323000], but received input value["
-								+ String.format("0x%08X", bdir.getVersionNumber()) + "]");
+								+ MessageFormat.format("{0}", bdir.getVersionNumber()) + "]");
 				isValid = false;
 			}
 
 			if (!FingerISOStandardsValidator.getInstance().isValidNoOfRepresentations(bdir.getNoOfRepresentations())) {
 				message.append(
 						"<BR>Invalid No Of Representations for Finger Modality, expected values[0x0001], but received input value["
-								+ String.format("0x%04X", bdir.getNoOfRepresentations()) + "]");
+								+ MessageFormat.format("{0}", bdir.getNoOfRepresentations()) + "]");
 				isValid = false;
 			}
 
@@ -197,21 +199,21 @@ public abstract class SDKService {
 					bdir.getRecordLength())) {
 				message.append(
 						"<BR>Invalid Record Length for Finger Modality, expected values between[0x00000039 and 0xFFFFFFFF], but received input value["
-								+ String.format("0x%08X", (bioData != null ? bioData.length : 0) + "]"));
+								+ MessageFormat.format("{0}", (bioData != null ? bioData.length : 0) + "]"));
 				isValid = false;
 			}
 
 			if (!FingerISOStandardsValidator.getInstance().isValidCertificationFlag(bdir.getCertificationFlag())) {
 				message.append(
 						"<BR>Invalid Certification Flag for Finger Modality, expected values[0x00, 0x01], but received input value["
-								+ String.format("0x%02X", bdir.getCertificationFlag()) + "]");
+								+ MessageFormat.format("{0}", bdir.getCertificationFlag()) + "]");
 				isValid = false;
 			}
 
 			if (!FingerISOStandardsValidator.getInstance().isValidNoOfFingerPresent(bdir.getNoOfFingerPresent())) {
 				message.append(
 						"<BR>Invalid No Of Finger Present for Finger Modality, expected values[0x01], but received input value["
-								+ String.format("0x%02X", bdir.getNoOfFingerPresent()) + "]");
+								+ MessageFormat.format("{0}", bdir.getNoOfFingerPresent()) + "]");
 				isValid = false;
 			}
 
@@ -219,7 +221,7 @@ public abstract class SDKService {
 					.isValidRepresentationLength(bdir.getRepresentationsLength())) {
 				message.append(
 						"<BR>Invalid Representation Length for Finger Modality, expected values between[0x00000029 and 0xFFFFFFEF], but received input value["
-								+ String.format("0x%08X", bdir.getRecordLength()) + "]");
+								+ MessageFormat.format("{0}", bdir.getRecordLength()) + "]");
 				isValid = false;
 			}
 
@@ -239,7 +241,7 @@ public abstract class SDKService {
 					.isValidCaptureDeviceTechnologyIdentifier(bdir.getCaptureDeviceTechnologyIdentifier())) {
 				message.append(
 						"<BR>Invalid Capture Device Technology Identifier for Finger Modality, expected values between[0x00 and 0x14], but received input value["
-								+ String.format("0x%02X", bdir.getCaptureDeviceTechnologyIdentifier()) + "]");
+								+ MessageFormat.format("{0}", bdir.getCaptureDeviceTechnologyIdentifier()) + "]");
 				isValid = false;
 			}
 
@@ -247,7 +249,7 @@ public abstract class SDKService {
 					.isValidCaptureDeviceVendor(bdir.getCaptureDeviceVendorIdentifier())) {
 				message.append(
 						"<BR>Invalid Capture Device Vendor Identifier for Finger Modality, expected values between[0x0000 and 0xFFFF], but received input value["
-								+ String.format("0x%04X", bdir.getCaptureDeviceVendorIdentifier()) + "]");
+								+ MessageFormat.format("{0}", bdir.getCaptureDeviceVendorIdentifier()) + "]");
 				isValid = false;
 			}
 
@@ -255,14 +257,14 @@ public abstract class SDKService {
 					bdir.getCaptureDeviceVendorIdentifier(), bdir.getCaptureDeviceTypeIdentifier())) {
 				message.append(
 						"<BR>Invalid Capture Device Type Identifier for Finger Modality, expected values between[0x0000 and 0xFFFF], but received input value["
-								+ String.format("0x%04X", bdir.getCaptureDeviceTypeIdentifier()) + "]");
+								+ MessageFormat.format("{0}", bdir.getCaptureDeviceTypeIdentifier()) + "]");
 				isValid = false;
 			}
 
 			if (!FingerISOStandardsValidator.getInstance().isValidNoOfQualityBlocks(bdir.getNoOfQualityBlocks())) {
 				message.append(
 						"<BR>Invalid No Of Quality Blocks value for Finger Modality, expected values between[0x00 and 0xFF], but received input value["
-								+ String.format("0x%02X", bdir.getNoOfQualityBlocks()) + "]");
+								+ MessageFormat.format("{0}", bdir.getNoOfQualityBlocks()) + "]");
 				isValid = false;
 			}
 
@@ -272,7 +274,7 @@ public abstract class SDKService {
 							.isValidQualityScore(qualityBlock.getQualityScore())) {
 						message.append(
 								"<BR>Invalid Quality Score value for Finger Modality, expected values between[{0x00 and 0x64}, {0xFF}], but received input value["
-										+ String.format("0x%02X", qualityBlock.getQualityScore()) + "]");
+										+ MessageFormat.format("{0}", qualityBlock.getQualityScore()) + "]");
 						isValid = false;
 					}
 
@@ -280,7 +282,7 @@ public abstract class SDKService {
 							.isValidQualityAlgorithmIdentifier(qualityBlock.getQualityAlgorithmIdentifier())) {
 						message.append(
 								"<BR>Invalid Quality Algorithm Identifier for Finger Modality, expected values between[0x0000 and 0xFFFF], but received input value["
-										+ String.format("0x%04X", qualityBlock.getQualityAlgorithmIdentifier()) + "]");
+										+ MessageFormat.format("{0}", qualityBlock.getQualityAlgorithmIdentifier()) + "]");
 						isValid = false;
 					}
 
@@ -288,7 +290,7 @@ public abstract class SDKService {
 							qualityBlock.getQualityAlgorithmVendorIdentifier())) {
 						message.append(
 								"<BR>Invalid Quality Algorithm Vendor Identifier for Finger Modality, expected values between[0x0000 and 0xFFFF], but received input value["
-										+ String.format("0x%04X", qualityBlock.getQualityAlgorithmVendorIdentifier())
+										+ MessageFormat.format("{0}", qualityBlock.getQualityAlgorithmVendorIdentifier())
 										+ "]");
 						isValid = false;
 					}
@@ -299,7 +301,7 @@ public abstract class SDKService {
 					.isValidNoOfCertificationBlocks(bdir.getNoOfCertificationBlocks())) {
 				message.append(
 						"<BR>Invalid No Of Certification Blocks for Finger Modality, expected values between[0x00 and 0xFF], but received input value["
-								+ String.format("0x%02X", bdir.getNoOfCertificationBlocks()) + "]");
+								+ MessageFormat.format("{0}", bdir.getNoOfCertificationBlocks()) + "]");
 				isValid = false;
 			}
 
@@ -309,7 +311,7 @@ public abstract class SDKService {
 							.isValidCertificationAuthorityID(fingerCertificationBlock.getCertificationAuthorityID())) {
 						message.append(
 								"<BR>Invalid Certification AuthorityID for Finger Modality, expected values between[0x0000 and 0xFFFF], but received input value["
-										+ String.format("0x%04X",
+										+ MessageFormat.format("{0}",
 												fingerCertificationBlock.getCertificationAuthorityID())
 										+ "]");
 						isValid = false;
@@ -319,7 +321,7 @@ public abstract class SDKService {
 							fingerCertificationBlock.getCertificationSchemeIdentifier())) {
 						message.append(
 								"<BR>Invalid Certification Scheme Identifier for Finger Modality, expected values between[0x00 and 0xFF], but received input value["
-										+ String.format("0x%02X",
+										+ MessageFormat.format("{0}",
 												fingerCertificationBlock.getCertificationSchemeIdentifier())
 										+ "]");
 						isValid = false;
@@ -331,14 +333,14 @@ public abstract class SDKService {
 			if (!isValidFingerPosition(fingerPosition, biometricSubType)) {
 				message.append(
 						"<BR>Invalid Finger Position Value for Finger Modality, expected values between[0x00 and 0x0A], but received input value["
-								+ String.format("0x%02X", bdir.getFingerPosition()) + "}]");
+								+ MessageFormat.format("{0}", bdir.getFingerPosition()) + "}]");
 				isValid = false;
 			}
 
 			if (!FingerISOStandardsValidator.getInstance().isValidRepresentationsNo(bdir.getRepresentationNo())) {
 				message.append(
 						"<BR>Invalid Representations No Value for Finger Modality, expected values between[0x00 and 0x0F], but received input value["
-								+ String.format("0x%02X", bdir.getRepresentationNo()) + "]");
+								+ MessageFormat.format("{0}", bdir.getRepresentationNo()) + "]");
 				isValid = false;
 			}
 
@@ -347,7 +349,7 @@ public abstract class SDKService {
 			if (!FingerISOStandardsValidator.getInstance().isValidScaleUnits(scaleUnitsType)) {
 				message.append(
 						"<BR>Invalid Scale Unit Type Value for Finger Modality, expected values[0x01, 0x02], but received input value["
-								+ String.format("0x%02X", scaleUnitsType) + "]");
+								+ MessageFormat.format("{0}", scaleUnitsType) + "]");
 				isValid = false;
 			}
 
@@ -356,7 +358,7 @@ public abstract class SDKService {
 					.isValidScanSpatialSamplingRateHorizontal(scanSpatialSamplingRateHorizontal)) {
 				message.append(
 						"<BR>Invalid Device Scan Spatial Sampling Rate Horizontal for Finger Modality, expected values between[0x01EA and 0x03F2], but received input value["
-								+ String.format("0x%04X", scanSpatialSamplingRateHorizontal) + "]");
+								+ MessageFormat.format("{0}", scanSpatialSamplingRateHorizontal) + "]");
 				isValid = false;
 			}
 
@@ -365,7 +367,7 @@ public abstract class SDKService {
 					.isValidScanSpatialSamplingRateVertical(scanSpatialSamplingRateVertical)) {
 				message.append(
 						"<BR>Invalid Device Scan Spatial Sampling Rate Vertical for Finger Modality, expected values between[0x01EA and 0x03F2], but received input value["
-								+ String.format("0x%04X", scanSpatialSamplingRateVertical) + "]");
+								+ MessageFormat.format("{0}", scanSpatialSamplingRateVertical) + "]");
 				isValid = false;
 			}
 
@@ -373,9 +375,9 @@ public abstract class SDKService {
 					scanSpatialSamplingRateHorizontal, bdir.getImageSpatialSamplingRateHorizontal())) {
 				message.append(
 						"<BR>Invalid Image Spatial SamplingRate Horizontal for Finger Modality, expected values between[0x01EA and 0x03F2] And less than or equal to ScanSpatialSamplingRateHorizontal value of "
-								+ String.format("0x%04X", scanSpatialSamplingRateHorizontal)
+								+ MessageFormat.format("{0}", scanSpatialSamplingRateHorizontal)
 								+ ", but received input value["
-								+ String.format("0x%04X", bdir.getImageSpatialSamplingRateHorizontal()) + "]");
+								+ MessageFormat.format("{0}", bdir.getImageSpatialSamplingRateHorizontal()) + "]");
 				isValid = false;
 			}
 
@@ -383,9 +385,9 @@ public abstract class SDKService {
 					scanSpatialSamplingRateVertical, bdir.getImageSpatialSamplingRateVertical())) {
 				message.append(
 						"<BR>Invalid Device Scan Spatial Sampling Rate Vertical for Finger Modality, expected values between[0x01EA and 0x03F2] And less than or equal to ScanSpatialSamplingRateVertical value of "
-								+ String.format("0x%04X", scanSpatialSamplingRateVertical)
+								+ MessageFormat.format("{0}", scanSpatialSamplingRateVertical)
 								+ ", but received input value["
-								+ String.format("0x%04X", bdir.getImageSpatialSamplingRateVertical()) + "]");
+								+ MessageFormat.format("{0}", bdir.getImageSpatialSamplingRateVertical()) + "]");
 				isValid = false;
 			}
 
@@ -394,7 +396,7 @@ public abstract class SDKService {
 			if (!FingerISOStandardsValidator.getInstance().isValidBitDepth(inImageData, bdir.getBitDepth())) {
 				message.append(
 						"<BR>Invalid Image Bit Depth Value for Finger Modality, expected values[0x08], but received input value["
-								+ String.format("0x%02X", bdir.getBitDepth()) + "]");
+								+ MessageFormat.format("{0}", bdir.getBitDepth()) + "]");
 				isValid = false;
 			}
 
@@ -404,7 +406,7 @@ public abstract class SDKService {
 					|| compressionType == FingerImageCompressionType.JPEG_2000_LOSS_LESS)) {
 				message.append(
 						"<BR>Invalid Image Compression Type for Finger Modality, expected values[{JPEG_2000_LOSSY(0x04) or WSQ(0x02) or JPEG_2000_LOSS_LESS(0x05)}], but received input value["
-								+ " (" + String.format("0x%02X", compressionType) + ")]");
+								+ " (" + MessageFormat.format("{0}", compressionType) + ")]");
 				isValid = false;
 			}
 
@@ -416,7 +418,7 @@ public abstract class SDKService {
 			if (!FingerISOStandardsValidator.getInstance().isValidImageImpressionType(bdir.getImpressionType())) {
 				message.append(
 						"<BR>Invalid Image Impression Type for Finger Modality, expected values between[{0x00 and 0x0F} or 0x18 or 0x1C or 0x1D], "
-								+ " but received input value[" + String.format("0x%02X", bdir.getImpressionType())
+								+ " but received input value[" + MessageFormat.format("{0}", bdir.getImpressionType())
 								+ "]");
 				isValid = false;
 			}
@@ -424,10 +426,10 @@ public abstract class SDKService {
 			if (!FingerISOStandardsValidator.getInstance().isValidImageDataLength(inImageData, bdir.getImageLength())) {
 				message.append(
 						"<BR>Invalid Image Data Length for Finger Modality, expected values[0x00000001 and 0xFFFFFFFF], but received input value["
-								+ String.format("0x%08X", bdir.getImageLength()) + "]");
+								+ MessageFormat.format("{0}", bdir.getImageLength()) + "]");
 				isValid = false;
 			}
-			// TODO check the condition: imagedata
+
 			// can check imagettype for auth and reg
 			if (!isValid) {
 				responseStatus = ResponseStatus.INVALID_INPUT;
@@ -443,58 +445,35 @@ public abstract class SDKService {
 	}
 
 	protected boolean isValidFingerPosition(int fingerPosition, String biometricSubType) {
-		boolean isValid = false;
 		switch (biometricSubType) {
 		case "UNKNOWN":
-			isValid = true;
-			break;
+			return true;
 		case "Left IndexFinger":
-			if (fingerPosition == FingerPosition.LEFT_INDEX_FINGER)
-				isValid = true;
-			break;
+			return (fingerPosition == FingerPosition.LEFT_INDEX_FINGER);
 		case "Left MiddleFinger":
-			if (fingerPosition == FingerPosition.LEFT_MIDDLE_FINGER)
-				isValid = true;
-			break;
+			return (fingerPosition == FingerPosition.LEFT_MIDDLE_FINGER);
 		case "Left RingFinger":
-			if (fingerPosition == FingerPosition.LEFT_RING_FINGER)
-				isValid = true;
-			break;
+			return (fingerPosition == FingerPosition.LEFT_RING_FINGER);
 		case "Left LittleFinger":
-			if (fingerPosition == FingerPosition.LEFT_LITTLE_FINGER)
-				isValid = true;
-			break;
+			return (fingerPosition == FingerPosition.LEFT_LITTLE_FINGER);
 		case "Left Thumb":
-			if (fingerPosition == FingerPosition.LEFT_THUMB)
-				isValid = true;
-			break;
+			return (fingerPosition == FingerPosition.LEFT_THUMB);
 		case "Right IndexFinger":
-			if (fingerPosition == FingerPosition.RIGHT_INDEX_FINGER)
-				isValid = true;
-			break;
+			return (fingerPosition == FingerPosition.RIGHT_INDEX_FINGER);
 		case "Right MiddleFinger":
-			if (fingerPosition == FingerPosition.RIGHT_MIDDLE_FINGER)
-				isValid = true;
-			break;
+			return (fingerPosition == FingerPosition.RIGHT_MIDDLE_FINGER);
 		case "Right RingFinger":
-			if (fingerPosition == FingerPosition.RIGHT_RING_FINGER)
-				isValid = true;
-			break;
+			return (fingerPosition == FingerPosition.RIGHT_RING_FINGER);
 		case "Right LittleFinger":
-			if (fingerPosition == FingerPosition.RIGHT_LITTLE_FINGER)
-				isValid = true;
-			break;
+			return (fingerPosition == FingerPosition.RIGHT_LITTLE_FINGER);
 		case "Right Thumb":
-			if (fingerPosition == FingerPosition.RIGHT_THUMB)
-				isValid = true;
-			break;
+			return (fingerPosition == FingerPosition.RIGHT_THUMB);
 		default:
-			isValid = false;
-			break;
+			return false;
 		}
-		return isValid;
 	}
 
+	@SuppressWarnings({ "java:S1141", "java:S3776", "java:S6541" })
 	protected boolean isValidIrisBdb(PurposeType purposeType, String biometricSubType, String bdbData, BqatRequestDto bqatRequestDto) {
 		ResponseStatus responseStatus = null;
 		try {
@@ -520,14 +499,14 @@ public abstract class SDKService {
 			if (!IrisISOStandardsValidator.getInstance().isValidFormatIdentifier(bdir.getFormatIdentifier())) {
 				message.append(
 						"<BR>Invalid Format Identifier for Iris Modality, expected values[0x49495200], but received input value["
-								+ String.format("0x%08X", bdir.getFormatIdentifier()) + "]");
+								+ MessageFormat.format("{0}", bdir.getFormatIdentifier()) + "]");
 				isValid = false;
 			}
 
 			if (!IrisISOStandardsValidator.getInstance().isValidVersionNumber(bdir.getVersionNumber())) {
 				message.append(
 						"<BR>Invalid Version Number for Iris Modality, expected values[0x30323000], but received input value["
-								+ String.format("0x%08X", bdir.getVersionNumber()) + "]");
+								+ MessageFormat.format("{0}", bdir.getVersionNumber()) + "]");
 				isValid = false;
 			}
 
@@ -535,7 +514,7 @@ public abstract class SDKService {
 			if (!IrisISOStandardsValidator.getInstance().isValidNoOfRepresentations(noOfRepresentations)) {
 				message.append(
 						"<BR>Invalid No Of Representations for Iris Modality, expected values[0x0001], but received input value["
-								+ String.format("0x%04X", bdir.getNoOfRepresentations()) + "]");
+								+ MessageFormat.format("{0}", bdir.getNoOfRepresentations()) + "]");
 				isValid = false;
 			}
 
@@ -543,14 +522,14 @@ public abstract class SDKService {
 					bdir.getRecordLength())) {
 				message.append(
 						"<BR>Invalid Record Length for Iris Modality, expected values between[0x00000045 and 0xFFFFFFFF], but received input value["
-								+ String.format("0x%08X", (bioData != null ? bioData.length : 0) + "]"));
+								+ MessageFormat.format("{0}", (bioData != null ? bioData.length : 0) + "]"));
 				isValid = false;
 			}
 
 			if (!IrisISOStandardsValidator.getInstance().isValidCertificationFlag(bdir.getCertificationFlag())) {
 				message.append(
 						"<BR>Invalid Certification Flag for Iris Modality, expected values[0x00], but received input value["
-								+ String.format("0x%02X", bdir.getCertificationFlag()) + "]");
+								+ MessageFormat.format("{0}", bdir.getCertificationFlag()) + "]");
 				isValid = false;
 			}
 
@@ -558,21 +537,21 @@ public abstract class SDKService {
 			if (!IrisISOStandardsValidator.getInstance().isValidNoOfEyesRepresented(bdir.getNoOfEyesPresent())) {
 				message.append(
 						"<BR>Invalid No Of Eyes Present for Iris Modality, expected values[0x00, 0x01], but received input value["
-								+ String.format("0x%02X", bdir.getNoOfEyesPresent()) + "]");
+								+ MessageFormat.format("{0}", bdir.getNoOfEyesPresent()) + "]");
 				isValid = false;
 			}
 
 			if (noOfRepresentations != noOfEyesPresent) {
-				message.append("<BR>Invalid No Of Eyes Present[" + String.format("0x%04X", noOfEyesPresent)
+				message.append("<BR>Invalid No Of Eyes Present[" + MessageFormat.format("{0}", noOfEyesPresent)
 						+ "] for Iris Modality, For given No Of Representations["
-						+ String.format("0x%04X", noOfRepresentations) + "]");
+						+ MessageFormat.format("{0}", noOfRepresentations) + "]");
 				isValid = false;
 			}
 
 			if (!IrisISOStandardsValidator.getInstance().isValidRepresentationLength(bdir.getRepresentationsLength())) {
 				message.append(
 						"<BR>Invalid Representation Length for Iris Modality, expected values between[0x00000035 And 0xFFFFFFEF], but received input value["
-								+ String.format("0x%08X", bdir.getRecordLength()) + "]");
+								+ MessageFormat.format("{0}", bdir.getRecordLength()) + "]");
 				isValid = false;
 			}
 
@@ -592,7 +571,7 @@ public abstract class SDKService {
 					.isValidCaptureDeviceTechnologyIdentifier(bdir.getCaptureDeviceTechnologyIdentifier())) {
 				message.append(
 						"<BR>Invalid Capture Device Technology Identifier for Iris Modality, expected values[0x00, 0x01], but received input value["
-								+ String.format("0x%02X", bdir.getCaptureDeviceTechnologyIdentifier()) + "]");
+								+ MessageFormat.format("{0}", bdir.getCaptureDeviceTechnologyIdentifier()) + "]");
 				isValid = false;
 			}
 
@@ -600,7 +579,7 @@ public abstract class SDKService {
 					.isValidCaptureDeviceVendor(bdir.getCaptureDeviceVendorIdentifier())) {
 				message.append(
 						"<BR>Invalid Capture Device Vendor Identifier for Iris Modality, expected values between[0x0000 and 0xFFFF], but received input value["
-								+ String.format("0x%04X", bdir.getCaptureDeviceVendorIdentifier()) + "]");
+								+ MessageFormat.format("{0}", bdir.getCaptureDeviceVendorIdentifier()) + "]");
 				isValid = false;
 			}
 
@@ -608,14 +587,14 @@ public abstract class SDKService {
 					bdir.getCaptureDeviceVendorIdentifier(), bdir.getCaptureDeviceTypeIdentifier())) {
 				message.append(
 						"<BR>Invalid Capture Device Type Identifier for Iris Modality, expected values between[0x0000 and 0xFFFF], but received input value["
-								+ String.format("0x%04X", bdir.getCaptureDeviceTypeIdentifier()) + "]");
+								+ MessageFormat.format("{0}", bdir.getCaptureDeviceTypeIdentifier()) + "]");
 				isValid = false;
 			}
 
 			if (!IrisISOStandardsValidator.getInstance().isValidNoOfQualityBlocks(bdir.getNoOfQualityBlocks())) {
 				message.append(
 						"<BR>Invalid No Of Quality Blocks value for Iris Modality, expected values between [0x00 and 0xFF], but received input value["
-								+ String.format("0x%02X", bdir.getNoOfQualityBlocks()) + "]");
+								+ MessageFormat.format("{0}", bdir.getNoOfQualityBlocks()) + "]");
 				isValid = false;
 			}
 
@@ -624,7 +603,7 @@ public abstract class SDKService {
 					if (!IrisISOStandardsValidator.getInstance().isValidQualityScore(qualityBlock.getQualityScore())) {
 						message.append(
 								"<BR>Invalid Quality Score value for Iris Modality, expected values between[0x00 and 0x64], but received input value["
-										+ String.format("0x%02X", qualityBlock.getQualityScore()) + "]");
+										+ MessageFormat.format("{0}", qualityBlock.getQualityScore()) + "]");
 						isValid = false;
 					}
 
@@ -632,7 +611,7 @@ public abstract class SDKService {
 							.isValidQualityAlgorithmIdentifier(qualityBlock.getQualityAlgorithmIdentifier())) {
 						message.append(
 								"<BR>Invalid Quality Algorithm Identifier for Iris Modality, expected values between[0x0000 and 0xFFFF], but received input value["
-										+ String.format("0x%04X", qualityBlock.getQualityAlgorithmIdentifier()) + "]");
+										+ MessageFormat.format("{0}", qualityBlock.getQualityAlgorithmIdentifier()) + "]");
 						isValid = false;
 					}
 
@@ -640,7 +619,7 @@ public abstract class SDKService {
 							qualityBlock.getQualityAlgorithmVendorIdentifier())) {
 						message.append(
 								"<BR>Invalid Quality Algorithm Vendor Identifier for Iris Modality, expected values between[0x0000 and 0xFFFF], but received input value["
-										+ String.format("0x%04X", qualityBlock.getQualityAlgorithmVendorIdentifier())
+										+ MessageFormat.format("{0}", qualityBlock.getQualityAlgorithmVendorIdentifier())
 										+ "]");
 						isValid = false;
 					}
@@ -650,7 +629,7 @@ public abstract class SDKService {
 			if (!IrisISOStandardsValidator.getInstance().isValidNoOfRepresentation(bdir.getRepresentationNo())) {
 				message.append(
 						"<BR>Invalid No Of Representation for Iris Modality, expected values[0x01], but received input value["
-								+ String.format("0x%02X", bdir.getRepresentationNo()) + "]");
+								+ MessageFormat.format("{0}", bdir.getRepresentationNo()) + "]");
 				isValid = false;
 			}
 
@@ -658,7 +637,7 @@ public abstract class SDKService {
 			if (!isValidEyeLabel(eyeLabel, biometricSubType)) {
 				message.append(
 						"<BR>Invalid Iris Eye Label Value for Iris Modality, expected values[0x00, 0x01, 0x02}], but received input value["
-								+ "{" + String.format("0x%02X", bdir.getEyeLabel()) + "}]");
+								+ "{" + MessageFormat.format("{0}", bdir.getEyeLabel()) + "}]");
 				isValid = false;
 			}
 
@@ -666,14 +645,14 @@ public abstract class SDKService {
 			if (!(imageType == ImageType.CROPPED_AND_MASKED || imageType == ImageType.CROPPED)) {
 				message.append(
 						"<BR>Invalid Image Type No Value Irisnger Modality, expected values[0x03, 0x07], but received input value["
-								+ "{" + String.format("0x%02X", bdir.getImageType()) + "}]");
+								+ "{" + MessageFormat.format("{0}", bdir.getImageType()) + "}]");
 				isValid = false;
 			}
 
 			if (!IrisISOStandardsValidator.getInstance().isValidImageFromat(bdir.getImageFormat())) {
 				message.append(
 						"<BR>Invalid Image Format Value for Iris Modality, expected values[0x0A], but received input value["
-								+ String.format("0x%02X", bdir.getImageFormat()) + "]");
+								+ MessageFormat.format("{0}", bdir.getImageFormat()) + "]");
 				isValid = false;
 			}
 
@@ -681,7 +660,7 @@ public abstract class SDKService {
 					.isValidImageHorizontalOrientation(bdir.getHorizontalOrientation())) {
 				message.append(
 						"<BR>Invalid Image Horizontal Orientation for Iris Modality, expected values[0x00, 0x01, 0x02], but received input value["
-								+ String.format("0x%02X", bdir.getHorizontalOrientation()) + "]");
+								+ MessageFormat.format("{0}", bdir.getHorizontalOrientation()) + "]");
 				isValid = false;
 			}
 
@@ -689,7 +668,7 @@ public abstract class SDKService {
 					.isValidImageVerticalOrientation(bdir.getVerticalOrientation())) {
 				message.append(
 						"<BR>Invalid Image Vertical Orientation for Iris Modality, expected values[0x00, 0x01, 0x02], but received input value["
-								+ String.format("0x%02X", bdir.getVerticalOrientation()) + "]");
+								+ MessageFormat.format("{0}", bdir.getVerticalOrientation()) + "]");
 				isValid = false;
 			}
 
@@ -698,7 +677,7 @@ public abstract class SDKService {
 					|| compressionType == IrisImageCompressionType.JPEG_LOSSLESS_OR_NONE)) {
 				message.append(
 						"<BR>Invalid Image Compression Type for Iris Modality, expected values[JPEG_2000_LOSSY(0x02), JPEG_2000_LOSS_LESS(0x01)], but received input value["
-								+ "(" + String.format("0x%02X", compressionType) + ")]");
+								+ "(" + MessageFormat.format("{0}", compressionType) + ")]");
 				isValid = false;
 			}
 
@@ -711,81 +690,80 @@ public abstract class SDKService {
 			if (!IrisISOStandardsValidator.getInstance().isValidBitDepth(inImageData, bdir.getBitDepth())) {
 				message.append(
 						"<BR>Invalid Image Bit Depth Value for Iris Modality, expected values[0x08(Grayscale)], but received input value["
-								+ String.format("0x%02X", bdir.getBitDepth()) + "]");
+								+ MessageFormat.format("{0}", bdir.getBitDepth()) + "]");
 				isValid = false;
 			}
 
 			if (!IrisISOStandardsValidator.getInstance().isValidRange(bdir.getRange())) {
 				message.append(
 						"<BR>Invalid Range Value for Iris Modality, expected values between[0x0000 and 0xFFFF], but received input value["
-								+ String.format("0x%04X", bdir.getRange()) + "]");
+								+ MessageFormat.format("{0}", bdir.getRange()) + "]");
 				isValid = false;
 			}
 
 			if (!IrisISOStandardsValidator.getInstance().isValidRollAngleOfEye(bdir.getRollAngleOfEye())) {
 				message.append(
 						"<BR>Invalid Roll Angle Of Eye Value for Iris Modality, expected values between[0x0000 and 0xFFFF], but received input value["
-								+ String.format("0x%04X", bdir.getRollAngleOfEye()) + "]");
+								+ MessageFormat.format("{0}", bdir.getRollAngleOfEye()) + "]");
 				isValid = false;
 			}
 
 			if (!IrisISOStandardsValidator.getInstance().isValidRollAngleUncertainty(bdir.getRollAngleUncertainty())) {
 				message.append(
 						"<BR>Invalid Roll Angle Uncertainty Value for Iris Modality, expected values between[0x0000 and 0xFFFF], but received input value["
-								+ String.format("0x%04X", bdir.getRollAngleUncertainty()) + "]");
+								+ MessageFormat.format("{0}", bdir.getRollAngleUncertainty()) + "]");
 				isValid = false;
 			}
 
 			if (!IrisISOStandardsValidator.getInstance().isValidIrisCenterSmallestX(bdir.getIrisCenterSmallestX())) {
 				message.append(
 						"<BR>Invalid Iris Center Smallest X Value for Iris Modality, expected values between[0x0000 and 0xFFFF], but received input value["
-								+ String.format("0x%04X", bdir.getIrisCenterSmallestX()) + "]");
+								+ MessageFormat.format("{0}", bdir.getIrisCenterSmallestX()) + "]");
 				isValid = false;
 			}
 
 			if (!IrisISOStandardsValidator.getInstance().isValidIrisCenterLargestX(bdir.getIrisCenterLargestX())) {
 				message.append(
 						"<BR>Invalid Iris Center Largest X Value for Iris Modality, expected values between[0x0000 and 0xFFFF], but received input value["
-								+ String.format("0x%04X", bdir.getIrisCenterLargestX()) + "]");
+								+ MessageFormat.format("{0}", bdir.getIrisCenterLargestX()) + "]");
 				isValid = false;
 			}
 
 			if (!IrisISOStandardsValidator.getInstance().isValidIrisCenterSmallestY(bdir.getIrisCenterSmallestY())) {
 				message.append(
 						"<BR>Invalid Iris Center Smallest Y Value for Iris Modality, expected values between[0x0000 and 0xFFFF], but received input value["
-								+ String.format("0x%04X", bdir.getIrisCenterSmallestY()) + "]");
+								+ MessageFormat.format("{0}", bdir.getIrisCenterSmallestY()) + "]");
 				isValid = false;
 			}
 
 			if (!IrisISOStandardsValidator.getInstance().isValidIrisCenterLargestY(bdir.getIrisCenterLargestY())) {
 				message.append(
 						"<BR>Invalid Iris Center Largest Y Value for Iris Modality, expected values between[0x0000 and 0xFFFF], but received input value["
-								+ String.format("0x%04X", bdir.getIrisCenterLargestY()) + "]");
+								+ MessageFormat.format("{0}", bdir.getIrisCenterLargestY()) + "]");
 				isValid = false;
 			}
 
 			if (!IrisISOStandardsValidator.getInstance().isValidIrisDiameterSmallest(bdir.getIrisDiameterSmallest())) {
 				message.append(
 						"<BR>Invalid Iris Diameter Smallest Value for Iris Modality, expected values between[0x0000 and 0xFFFF], but received input value["
-								+ String.format("0x%04X", bdir.getIrisDiameterSmallest()) + "]");
+								+ MessageFormat.format("{0}", bdir.getIrisDiameterSmallest()) + "]");
 				isValid = false;
 			}
 
 			if (!IrisISOStandardsValidator.getInstance().isValidIrisDiameterLargest(bdir.getIrisDiameterLargest())) {
 				message.append(
 						"<BR>Invalid Iris Diameter Largest Value for Iris Modality, expected values between[0x0000 and 0xFFFF], but received input value["
-								+ String.format("0x%04X", bdir.getIrisDiameterLargest()) + "]");
+								+ MessageFormat.format("{0}", bdir.getIrisDiameterLargest()) + "]");
 				isValid = false;
 			}
 
 			if (!IrisISOStandardsValidator.getInstance().isValidImageDataLength(inImageData, bdir.getImageLength())) {
 				message.append(
 						"<BR>Invalid Image Data Length for Iris Modality, expected values between[0x00000001 and 0xFFFFFFFF], but received input value["
-								+ String.format("0x%08X", bdir.getImageLength()) + "]");
+								+ MessageFormat.format("{0}", bdir.getImageLength()) + "]");
 				isValid = false;
 			}
 
-			// TODO check the condition: imagedata
 			if (!isValid) {
 				responseStatus = ResponseStatus.INVALID_INPUT;
 				throw new SDKException(responseStatus.getStatusCode() + "",
@@ -801,26 +779,19 @@ public abstract class SDKService {
 	}
 
 	protected boolean isValidEyeLabel(int eyeLabel, String biometricSubType) {
-		boolean isValid = false;
 		switch (biometricSubType) {
 		case "UNKNOWN":
-			isValid = true;
-			break;
+			return true;
 		case "Left":
-			if (eyeLabel == EyeLabel.LEFT)
-				isValid = true;
-			break;
+			return (eyeLabel == EyeLabel.LEFT);
 		case "Right":
-			if (eyeLabel == EyeLabel.RIGHT)
-				isValid = true;
-			break;
+			return (eyeLabel == EyeLabel.RIGHT);
 		default:
-			isValid = false;
-			break;
+			return false;
 		}
-		return isValid;
 	}
 
+	@SuppressWarnings({ "java:S1141", "java:S3776", "java:S6541" })
 	protected boolean isValidFaceBdb(PurposeType purposeType, String biometricSubType, String bdbData, BqatRequestDto bqatRequestDto) {
 		ResponseStatus responseStatus = null;
 		try {
@@ -844,21 +815,21 @@ public abstract class SDKService {
 			if (!FaceISOStandardsValidator.getInstance().isValidFormatIdentifier(bdir.getFormatIdentifier())) {
 				message.append(
 						"<BR>Invalid Format Identifier for Face Modality, expected values[0x46414300], but received input value["
-								+ String.format("0x%08X", bdir.getFormatIdentifier()) + "]");
+								+ MessageFormat.format("{0}", bdir.getFormatIdentifier()) + "]");
 				isValid = false;
 			}
 
 			if (!FaceISOStandardsValidator.getInstance().isValidVersionNumber(bdir.getVersionNumber())) {
 				message.append(
 						"<BR>Invalid Version Number for Face Modality, expected values[0x30333000], but received input value["
-								+ String.format("0x%08X", bdir.getVersionNumber()) + "]");
+								+ MessageFormat.format("{0}", bdir.getVersionNumber()) + "]");
 				isValid = false;
 			}
 
 			if (!FaceISOStandardsValidator.getInstance().isValidNoOfRepresentations(bdir.getNoOfRepresentations())) {
 				message.append(
 						"<BR>Invalid No Of Representations for Face Modality, expected values[0x0001], but received input value["
-								+ String.format("0x%04X", bdir.getNoOfRepresentations()) + "]");
+								+ MessageFormat.format("{0}", bdir.getNoOfRepresentations()) + "]");
 				isValid = false;
 			}
 
@@ -866,28 +837,28 @@ public abstract class SDKService {
 					bdir.getRecordLength())) {
 				message.append(
 						"<BR>Invalid Record Length for Face Modality, expected values between[0x00000001 and 0xFFFFFFFF], but received input value["
-								+ String.format("0x%08X", (bioData != null ? bioData.length : 0) + "]"));
+								+ MessageFormat.format("{0}", (bioData != null ? bioData.length : 0) + "]"));
 				isValid = false;
 			}
 
 			if (!FaceISOStandardsValidator.getInstance().isValidCertificationFlag(bdir.getCertificationFlag())) {
 				message.append(
 						"<BR>Invalid Certification Flag for Face Modality, expected values[0x00], but received input value["
-								+ String.format("0x%02X", bdir.getCertificationFlag()) + "]");
+								+ MessageFormat.format("{0}", bdir.getCertificationFlag()) + "]");
 				isValid = false;
 			}
 
 			if (!FaceISOStandardsValidator.getInstance().isValidTemporalSemantics(bdir.getTemporalSemantics())) {
 				message.append(
 						"<BR>Invalid Certification Flag for Face Modality, expected values[0x0000], but received input value["
-								+ String.format("0x%04X", bdir.getTemporalSemantics()) + "]");
+								+ MessageFormat.format("{0}", bdir.getTemporalSemantics()) + "]");
 				isValid = false;
 			}
 
 			if (!FaceISOStandardsValidator.getInstance().isValidRepresentationLength(bdir.getRecordLength())) {
 				message.append(
 						"<BR>Invalid Representation Length for Face Modality, expected values between[0x00000033 and 0xFFFFFFEF], but received input value["
-								+ String.format("0x%08X", bdir.getRecordLength()) + "]");
+								+ MessageFormat.format("{0}", bdir.getRecordLength()) + "]");
 				isValid = false;
 			}
 
@@ -907,7 +878,7 @@ public abstract class SDKService {
 					.isValidCaptureDeviceTechnologyIdentifier(bdir.getCaptureDeviceTechnologyIdentifier())) {
 				message.append(
 						"<BR>Invalid Capture Device Technology Identifier for Face Modality, expected values between[{0x00 and 0x06}, {0x80 and 0xFF}], but received input value["
-								+ String.format("0x%02X", bdir.getCaptureDeviceTechnologyIdentifier()) + "]");
+								+ MessageFormat.format("{0}", bdir.getCaptureDeviceTechnologyIdentifier()) + "]");
 				isValid = false;
 			}
 
@@ -915,7 +886,7 @@ public abstract class SDKService {
 					.isValidCaptureDeviceVendor(bdir.getCaptureDeviceVendorIdentifier())) {
 				message.append(
 						"<BR>Invalid Capture Device Vendor Identifier for Face Modality, expected values between[0x0000 and 0xFFFF], but received input value["
-								+ String.format("0x%04X", bdir.getCaptureDeviceVendorIdentifier()) + "]");
+								+ MessageFormat.format("{0}", bdir.getCaptureDeviceVendorIdentifier()) + "]");
 				isValid = false;
 			}
 
@@ -923,14 +894,14 @@ public abstract class SDKService {
 					bdir.getCaptureDeviceVendorIdentifier(), bdir.getCaptureDeviceTypeIdentifier())) {
 				message.append(
 						"<BR>Invalid Capture Device Type Identifier for Face Modality, expected values between[0x0000 and 0xFFFF], but received input value["
-								+ String.format("0x%04X", bdir.getCaptureDeviceTypeIdentifier()) + "]");
+								+ MessageFormat.format("{0}", bdir.getCaptureDeviceTypeIdentifier()) + "]");
 				isValid = false;
 			}
 
 			if (!FaceISOStandardsValidator.getInstance().isValidNoOfQualityBlocks(bdir.getNoOfQualityBlocks())) {
 				message.append(
 						"<BR>Invalid No Of Quality Blocks value for Face Modality, expected values between[0x00 and 0xFF], but received input value["
-								+ String.format("0x%02X", bdir.getNoOfQualityBlocks()) + "]");
+								+ MessageFormat.format("{0}", bdir.getNoOfQualityBlocks()) + "]");
 				isValid = false;
 			}
 
@@ -939,7 +910,7 @@ public abstract class SDKService {
 					if (!FaceISOStandardsValidator.getInstance().isValidQualityScore(qualityBlock.getQualityScore())) {
 						message.append(
 								"<BR>Invalid Quality Score value for Face Modality, expected values between[{0x00 and 0x64}, {0xFF}], but received input value["
-										+ String.format("0x%02X", qualityBlock.getQualityScore()) + "]");
+										+ MessageFormat.format("{0}", qualityBlock.getQualityScore()) + "]");
 						isValid = false;
 					}
 
@@ -947,7 +918,7 @@ public abstract class SDKService {
 							.isValidQualityAlgorithmIdentifier(qualityBlock.getQualityAlgorithmIdentifier())) {
 						message.append(
 								"<BR>Invalid Quality Algorithm Identifier for Face Modality, expected values between[0x0000 and 0xFFFF], but received input value["
-										+ String.format("0x%04X", qualityBlock.getQualityAlgorithmIdentifier()) + "]");
+										+ MessageFormat.format("{0}", qualityBlock.getQualityAlgorithmIdentifier()) + "]");
 						isValid = false;
 					}
 
@@ -955,7 +926,7 @@ public abstract class SDKService {
 							qualityBlock.getQualityAlgorithmVendorIdentifier())) {
 						message.append(
 								"<BR>Invalid Quality Algorithm Vendor Identifier for Face Modality, expected values between[0x0000 and 0xFFFF], but received input value["
-										+ String.format("0x%04X", qualityBlock.getQualityAlgorithmVendorIdentifier())
+										+ MessageFormat.format("{0}", qualityBlock.getQualityAlgorithmVendorIdentifier())
 										+ "]");
 						isValid = false;
 					}
@@ -965,49 +936,49 @@ public abstract class SDKService {
 			if (!FaceISOStandardsValidator.getInstance().isValidNoOfLandmarkPoints(bdir.getNoOfLandMarkPoints())) {
 				message.append(
 						"<BR>Invalid No Of Landmark Points for Face Modality, expected values between[0x0000 and 0xFFFF], but received input value["
-								+ String.format("0x%04X", bdir.getNoOfLandMarkPoints()) + "]");
+								+ MessageFormat.format("{0}", bdir.getNoOfLandMarkPoints()) + "]");
 				isValid = false;
 			}
 
 			if (!FaceISOStandardsValidator.getInstance().isValidGender(bdir.getGender())) {
 				message.append(
 						"<BR>Invalid Gender value for Face Modality, expected values[0x00, 0x01, 0x02, 0xFF], but received input value["
-								+ String.format("0x%02X", bdir.getGender()) + "]");
+								+ MessageFormat.format("{0}", bdir.getGender()) + "]");
 				isValid = false;
 			}
 
 			if (!FaceISOStandardsValidator.getInstance().isValidEyeColour(bdir.getEyeColor())) {
 				message.append(
 						"<BR>Invalid Eye Colour value for Face Modality, expected values between[{0x00 and 0x07}, {0xFF}], but received input value["
-								+ String.format("0x%02X", bdir.getEyeColor()) + "]");
+								+ MessageFormat.format("{0}", bdir.getEyeColor()) + "]");
 				isValid = false;
 			}
 
 			if (!FaceISOStandardsValidator.getInstance().isValidHairColour(bdir.getHairColor())) {
 				message.append(
 						"<BR>Invalid Hair Colour Value for Face Modality, expected values between[{0x00 and 0x07}, {0xFF}], but received input value["
-								+ String.format("0x%02X", bdir.getHairColor()) + "]");
+								+ MessageFormat.format("{0}", bdir.getHairColor()) + "]");
 				isValid = false;
 			}
 
 			if (!FaceISOStandardsValidator.getInstance().isValidSubjectHeight(bdir.getSubjectHeight())) {
 				message.append(
 						"<BR>Invalid Subject Height Value for Face Modality, expected values between[0x00 and 0xFF], but received input value["
-								+ String.format("0x%02X", bdir.getSubjectHeight()) + "]");
+								+ MessageFormat.format("{0}", bdir.getSubjectHeight()) + "]");
 				isValid = false;
 			}
 
 			if (!FaceISOStandardsValidator.getInstance().isValidFeatureMask(bdir.getFeaturesMask())) {
 				message.append(
 						"<BR>Invalid Features Mask Value for Face Modality, expected values between[0x000000 and 0xFFFFFF], but received input value["
-								+ String.format("0x%06X", bdir.getFeaturesMask()) + "]");
+								+ MessageFormat.format("{0}", bdir.getFeaturesMask()) + "]");
 				isValid = false;
 			}
 
 			if (!FaceISOStandardsValidator.getInstance().isValidFeatureMask(bdir.getExpressionMask())) {
 				message.append(
 						"<BR>Invalid Expression Mask Value for Face Modality, expected values between[0x000000 and 0xFFFFFF], but received input value["
-								+ String.format("0x%06X", bdir.getExpressionMask()) + "]");
+								+ MessageFormat.format("{0}", bdir.getExpressionMask()) + "]");
 				isValid = false;
 			}
 
@@ -1033,7 +1004,7 @@ public abstract class SDKService {
 							.isValidLandmarkPointType(landmarkPoints.getLandmarkPointType())) {
 						message.append(
 								"<BR>Invalid Landmark Point Type for Face Modality, expected values between[0x00 and 0xFF], but received input value["
-										+ String.format("0x%02X", landmarkPoints.getLandmarkPointType()) + "]");
+										+ MessageFormat.format("{0}", landmarkPoints.getLandmarkPointType()) + "]");
 						isValid = false;
 					}
 
@@ -1041,7 +1012,7 @@ public abstract class SDKService {
 							landmarkPoints.getLandmarkPointType(), landmarkPoints.getLandmarkPointCode())) {
 						message.append(
 								"<BR>Invalid Landmark Point Code for Face Modality, expected values between[0x00 and 0xFF], but received input value["
-										+ String.format("0x%02X", landmarkPoints.getLandmarkPointCode()) + "]");
+										+ MessageFormat.format("{0}", landmarkPoints.getLandmarkPointCode()) + "]");
 						isValid = false;
 					}
 
@@ -1050,7 +1021,7 @@ public abstract class SDKService {
 							landmarkPoints.getXCoordinate())) {
 						message.append(
 								"<BR>Invalid Landmark X Cooridinate for Face Modality, expected values between[0x0000 and 0xFFFF], but received input value["
-										+ String.format("0x%04X", landmarkPoints.getXCoordinate()) + "]");
+										+ MessageFormat.format("{0}", landmarkPoints.getXCoordinate()) + "]");
 						isValid = false;
 					}
 
@@ -1059,7 +1030,7 @@ public abstract class SDKService {
 							landmarkPoints.getYCoordinate())) {
 						message.append(
 								"<BR>Invalid Landmark Y Cooridinate for Face Modality, expected values between[0x0000 and 0xFFFF], but received input value["
-										+ String.format("0x%04X", landmarkPoints.getYCoordinate()) + "]");
+										+ MessageFormat.format("{0}", landmarkPoints.getYCoordinate()) + "]");
 						isValid = false;
 					}
 
@@ -1068,7 +1039,7 @@ public abstract class SDKService {
 							landmarkPoints.getZCoordinate())) {
 						message.append(
 								"<BR>Invalid Landmark Z Cooridinate for Face Modality, expected values between[0x0000 and 0xFFFF], but received input value["
-										+ String.format("0x%04X", landmarkPoints.getZCoordinate()) + "]");
+										+ MessageFormat.format("{0}", landmarkPoints.getZCoordinate()) + "]");
 						isValid = false;
 					}
 				}
@@ -1077,7 +1048,7 @@ public abstract class SDKService {
 			if (!FaceISOStandardsValidator.getInstance().isValidFaceImageType(bdir.getFaceImageType())) {
 				message.append(
 						"<BR>Invalid Face Image Type Value for Face Modality, expected values between[{0x00 and 0x03}, {0x80 and 0x82}], but received input value["
-								+ String.format("0x%02X", bdir.getFaceImageType()) + "]");
+								+ MessageFormat.format("{0}", bdir.getFaceImageType()) + "]");
 				isValid = false;
 			}
 
@@ -1086,7 +1057,7 @@ public abstract class SDKService {
 					|| compressionType == ImageDataType.JPEG2000_LOSS_LESS)) {
 				message.append(
 						"<BR>Invalid Image Compression Type for Finger Modality, expected values[JPEG_2000_LOSSY(0x01), JPEG_2000_LOSS_LESS(0x02)], but received input value["
-								+ ", (" + String.format("0x%02X", compressionType) + ")]");
+								+ ", (" + MessageFormat.format("{0}", compressionType) + ")]");
 				isValid = false;
 			}
 
@@ -1101,7 +1072,7 @@ public abstract class SDKService {
 					.isValidSpatialSamplingRateLevel(bdir.getSpatialSamplingRateLevel())) {
 				message.append(
 						"<BR>Invalid Spatial Sampling Rate Level Value for Face Modality, expected values between[0x00 and 0x07], but received input value["
-								+ String.format("0x%02X", bdir.getSpatialSamplingRateLevel()) + "]");
+								+ MessageFormat.format("{0}", bdir.getSpatialSamplingRateLevel()) + "]");
 				isValid = false;
 			}
 
@@ -1109,32 +1080,32 @@ public abstract class SDKService {
 					.isValidPostAcquisitionProcessing(bdir.getPostAcquistionProcessing())) {
 				message.append(
 						"<BR>Invalid Post Acquisition Processing Value for Face Modality, expected values between[0x0000 and 0xFFFF], but received input value["
-								+ String.format("0x%02X", bdir.getPostAcquistionProcessing()) + "]");
+								+ MessageFormat.format("{0}", bdir.getPostAcquistionProcessing()) + "]");
 				isValid = false;
 			}
 
 			if (!FaceISOStandardsValidator.getInstance().isValidCrossReference(bdir.getCrossReference())) {
 				message.append(
 						"<BR>Invalid Cross Reference  Value for Face Modality, expected values between[0x00 and 0xFF], but received input value["
-								+ String.format("0x%02X", bdir.getCrossReference()) + "]");
+								+ MessageFormat.format("{0}", bdir.getCrossReference()) + "]");
 				isValid = false;
 			}
 
-			if (!(bdir.getImageColorSpace() == ImageColourSpace.BIT_24_RGB)) {
+			if (bdir.getImageColorSpace() != ImageColourSpace.UNSPECIFIED
+					|| bdir.getImageColorSpace() != ImageColourSpace.BIT_24_RGB) {
 				message.append(
-						"<BR>Invalid Image Bit Depth Value for Face Modality, expected values[0x01], but received input value["
-								+ String.format("0x%02X", bdir.getImageColorSpace()) + "]");
+						"<BR>Invalid Image Color Space Value for Face Modality, expected values[0x00, 0x01], but received input value["
+								+ MessageFormat.format("{0}", bdir.getImageColorSpace()) + "]");
 				isValid = false;
 			}
 
 			if (!FaceISOStandardsValidator.getInstance().isValidImageDataLength(inImageData, bdir.getImageLength())) {
 				message.append(
 						"<BR>Invalid Image Data Length for Face Modality, expected values between[0x00000001 and 0xFFFFFFFF], but received input value["
-								+ String.format("0x%08X", bdir.getImageLength()) + "]");
+								+ MessageFormat.format("{0}", bdir.getImageLength()) + "]");
 				isValid = false;
 			}
 
-			// TODO check the condition: imagedata
 			if (!isValid) {
 				responseStatus = ResponseStatus.INVALID_INPUT;
 				throw new SDKException(responseStatus.getStatusCode() + "",
