@@ -5,7 +5,7 @@
 
 	<artifactId>bqat-sdk</artifactId>
 	<groupId>io.github.biometix</groupId>
-	<version>0.0.2-java21</version>
+	<version>0.0.2</version>
 	<name>BQAT SDK</name>
 	<description>Implementation of Quality service for biometrics</description>
 	<packaging>jar</packaging>
@@ -15,7 +15,7 @@
 		<connection>scm:git:git://github.com/Biometix/bqat-sdk.git</connection>
 		<developerConnection>scm:git:ssh://github.com/Biometix/bqat-sdk.git</developerConnection>
 		<url>https://github.com/Biometix/bqat-sdk</url>
-		<tag>bqat-sdk-0.0.2-java21</tag>
+		<tag>bqat-sdk-0.0.2</tag>
 	</scm>
 
 	<licenses>
@@ -70,12 +70,12 @@
 		<junit.version>4.12</junit.version>
 
 		<!-- Mosip kernel -->
-		<kernel.bom.version>1.2.1-java21-SNAPSHOT</kernel.bom.version>
-		<kernel.core.version>1.2.1-java21-SNAPSHOT</kernel.core.version>
-		<kernel.biometrics.api.version>1.2.1-java21-SNAPSHOT</kernel.biometrics.api.version>
-		<kernel.logger.logback.version>1.2.1-java21-SNAPSHOT</kernel.logger.logback.version>
+		<kernel.bom.version>1.2.1-SNAPSHOT</kernel.bom.version>
+		<kernel.core.version>1.2.1-SNAPSHOT</kernel.core.version>
+		<kernel.biometrics.api.version>1.2.1-SNAPSHOT</kernel.biometrics.api.version>
+		<kernel.logger.logback.version>1.2.1-SNAPSHOT</kernel.logger.logback.version>
 
-		<biometrics-util.version>1.2.0.1-B1</biometrics-util.version>
+		<biometrics-util.version>1.2.1-SNAPSHOT</biometrics-util.version>
 	</properties>
 
 	<dependencyManagement>
