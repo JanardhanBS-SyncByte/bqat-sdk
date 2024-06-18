@@ -1,0 +1,32 @@
+{
+  "version": "1.0",
+  "responsetime": "2023-06-02T13:02:59.691Z",
+  "response": {
+    "statusCode": 200,
+    "statusMessage": "OK",
+    "response": {
+      "scores": {
+        "FINGER": {
+          "score": 86,
+          "errors": [],
+          "analyticsInfo": {
+            "UniformImage": "95.57781",
+            "file": "fingerprint_Left Thumb_1685710979937.jp2",
+            "Quantized": "0",
+            "converted": "jp2 -> png",
+            "FingerprintImageWithMinutiae": "35",
+            "EmptyImageOrContrastTooLow": "182.56236",
+            "Height": "400",
+            "EdgeStd": "0.9923946346943868",
+            "Width": "275",
+            "NFIQ2": "86",
+            "Resampled": "0",
+            "SufficientFingerprintForeground": "80718"
+          }
+        }
+      },
+      "analyticsInfo": {}
+    }
+  },
+  "errors": []
+}

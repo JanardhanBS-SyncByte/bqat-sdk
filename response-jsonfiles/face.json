@@ -1,0 +1,68 @@
+{
+  "version": "1.0",
+  "responsetime": "2023-06-02T12:55:00.004Z",
+  "response": {
+    "statusCode": 200,
+    "statusMessage": "OK",
+    "response": {
+      "scores": {
+        "FACE": {
+          "score": 9.7794,
+          "errors": [],
+          "analyticsInfo": {
+            "focus_face": "11494.9",
+            "sap_code": "2",
+            "background_deviation": "2.25995",
+            "opencv_frontal_face_found": "1",
+            "over_exposure_face": "0.000260262",
+            "opencv_nose_y": "202",
+            "opencv_nose_x": "116",
+            "blur": "12.8173",
+            "focus": "9400.08",
+            "image_area": "76800",
+            "opencv_face_offset_x": "-0.0166667",
+            "opencv_mouth_x": "121",
+            "opencv_face_offset_y": "-0.15625",
+            "opencv_mouth_y": "241",
+            "opencv_face_x": "36",
+            "opencv_eye_count": "2",
+            "opencv_face_y": "103",
+            "opencv_face_width": "164",
+            "file": "face_1685710500111.jp2",
+            "image_height": "320",
+            "openbr_left_eye_x": "151",
+            "image_ratio": "0.75",
+            "opencv_left_eye_x": "151",
+            "opencv_nose_count": "1",
+            "opencv_left_eye_y": "152",
+            "opencv_mouth_count": "1",
+            "openbr_left_eye_y": "152",
+            "opencv_IPD": "61.0328",
+            "opencv_landmarks_count": "4",
+            "openbr_right_eye_y": "152",
+            "openbr_right_eye_x": "89",
+            "openbr_IPD": "62",
+            "opencv_face_height": "164",
+            "skin_ratio_full": "0.716927",
+            "blur_face": "8.16274",
+            "opencv_face_found": "1",
+            "opencv_face_center_of_mass_y": "182.905",
+            "opencv_right_eye_x": "90",
+            "openbr_confidence": "1",
+            "over_exposure": "9.11458e-05",
+            "image_width": "240",
+            "opencv_right_eye_y": "150",
+            "image_channels": "3",
+            "quality": "9.7794",
+            "opencv_face_center_of_mass_x": "116.382",
+            "skin_ratio_face": "0.874405",
+            "opencv_profile_face_found": "0",
+            "background_grayness": "19"
+          }
+        }
+      },
+      "analyticsInfo": {}
+    }
+  },
+  "errors": []
+}

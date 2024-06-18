@@ -1,0 +1,38 @@
+{
+  "version": "1.0",
+  "responsetime": "2023-06-02T13:07:31.542Z",
+  "response": {
+    "statusCode": 200,
+    "statusMessage": "OK",
+    "response": {
+      "scores": {
+        "IRIS": {
+          "score": 56,
+          "errors": [],
+          "analyticsInfo": {
+            "normalized_iris_sclera_gs": "1",
+            "iris_center_x": "211",
+            "iris_center_y": "151",
+            "normalized_sharpness": "1",
+            "percent_visible_iris": "89",
+            "normalized_iris_pupil_gs": "0.889475",
+            "image_width": "423",
+            "iris_sclera_gs": "40",
+            "quality": "56",
+            "file": "iris_Right_1685711251712.jp2",
+            "image_height": "317",
+            "normalized_percent_visible_iris": "1",
+            "iris_pupil_gs": "18.9475",
+            "contrast": "44",
+            "iris_diameter": "270",
+            "normalized_iris_diameter": "1",
+            "sharpness": "170",
+            "normalized_contrast": "0.7"
+          }
+        }
+      },
+      "analyticsInfo": {}
+    }
+  },
+  "errors": []
+}
